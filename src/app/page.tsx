@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   return (
@@ -12,6 +13,14 @@ export default function Home() {
           height={38}
           priority
         />
+          
+
+      <Button variant="ghost" className="  ">Click me</Button>
+      <Button variant="ghost"className="  ">Click me</Button>
+      <Button variant="ghost" className="  ">Click me</Button>
+      <Button  variant="ghost" className="  ">Click me</Button>
+      <Button className=" bg-amber-700 ">Click me</Button>
+
         <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
           <li className="mb-2 tracking-[-.01em]">
             Get started by editing{" "}
@@ -99,5 +108,6 @@ export default function Home() {
         </a>
       </footer>
     </div>
+
   );
 }
