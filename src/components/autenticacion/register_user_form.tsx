@@ -1,7 +1,6 @@
 
-import { CalendarIcon, User2Icon} from "lucide-react"
+import {  User2Icon} from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -19,7 +18,7 @@ export function RegisterUserForm({
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">Iniciar Secion </CardTitle>
+          <CardTitle className="text-2xl">Registro Cliente </CardTitle>
           <CardDescription>
           </CardDescription>
         </CardHeader>
@@ -31,7 +30,7 @@ export function RegisterUserForm({
                 <Input 
                   id="email"
                   type="email"
-                  placeholder="Nombre de usuario o numero de celular"
+                  placeholder=" Username"
                   required
                 />
               </div>
@@ -42,7 +41,7 @@ export function RegisterUserForm({
                 <Input
                   id="email"
                   type="email"
-                  placeholder="Nombre de usuario o numero de celular"
+                  placeholder="1Nombre "
                   required
                 />
               </div>
@@ -53,7 +52,7 @@ export function RegisterUserForm({
                 <Input
                   id="email"
                   type="email"
-                  placeholder="Nombre de usuario o numero de celular"
+                  placeholder="2Nombre"
                   required
                 />
               </div>
@@ -64,7 +63,7 @@ export function RegisterUserForm({
                 <Input
                   id="email"
                   type="email"
-                  placeholder="Nombre de usuario o numero de celular"
+                  placeholder=" 1 apellido"
                   required
                 />
               </div>
@@ -76,7 +75,7 @@ export function RegisterUserForm({
                 <Input
                   id="email"
                   type="email"
-                  placeholder="Nombre de usuario o numero de celular"
+                  placeholder=" 2 Apedillos "
                   required
                 />
               </div>
@@ -87,7 +86,7 @@ export function RegisterUserForm({
                 <Input
                   id="email"
                   type="email"
-                  placeholder="Nombre de usuario o numero de celular"
+                  placeholder="Correo "
                   required
                 />
               </div>
@@ -98,7 +97,7 @@ export function RegisterUserForm({
                 <Input
                   id="email"
                   type="email"
-                  placeholder="Nombre de usuario o numero de celular"
+                  placeholder="Contrasena"
                   required
                 />
               </div>
@@ -109,7 +108,7 @@ export function RegisterUserForm({
                 <Input
                   id="email"
                   type="email"
-                  placeholder="Nombre de usuario o numero de celular"
+                  placeholder=" Fecha de nacimiento"
                   required
                 />
               </div>
@@ -120,7 +119,18 @@ export function RegisterUserForm({
                 <Input
                   id="email"
                   type="email"
-                  placeholder="Nombre de usuario o numero de celular"
+                  placeholder="Genero"
+                  required
+                />
+              </div>
+              </div>
+              <div className="flex flex-col gap-6">
+              <div className="grid gap-2">
+                <Label htmlFor=""></Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Cuidad"
                   required
                 />
               </div>
