@@ -50,9 +50,9 @@ export function NavBar() {
             ))}
 
             {/* Botón de descarga */}
-            <Button className="bg-emerald-500 hover:bg-emerald-600 text-white">Descargar la app</Button>
+            <Button className="bg-emerald-400 hover:bg-emerald-500 text-950">
+                Descargar la app</Button>
           </nav>
-
           {/* Botón de menú móvil */}
           <button
             className="md:hidden"

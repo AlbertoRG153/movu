@@ -36,7 +36,6 @@ export function Footer() {
               ))}
             </div>
           </div>
-
           {/* Enlaces del footer */}
           <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mb-4">
             {footerLinks.map((link) => (
@@ -45,9 +44,8 @@ export function Footer() {
               </Link>
             ))}
           </div>
-
           {/* Copyright */}
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-950">
             &copy; {new Date().getFullYear()} Movu. Todos los derechos reservados.
           </p>
         </div>
