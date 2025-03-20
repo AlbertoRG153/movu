@@ -1,89 +1,104 @@
 "use client"
 
-import type React from "react";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input} from "@/components/ui/input";
-import {
-  InputOTP,
- InputOTPGroup,
- InputOTPSeparator,
- InputOTPSlot,
-} from "@/components/ui/input-otp"
+import type React from "react"
+import  Image from "next/image"
+import { useState } from "react"
+import { Eye, EyeOff, FileLock, User2Icon } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 
-
-export function ResetForm() {
-  const [step, setStep] = useState(1);
-
-  const nextStep = () => setStep((prev) => (prev < 3 ? prev + 1 : prev));
-  const prevStep = () => setStep((prev) => (prev > 1 ? prev - 1 : prev));
+export function ResetForm({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
+  const [showPassword, setShowPassword] = useState(false)
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4">
+    <div className={cn("flex flex-col items-center justify-center min-h-screen p-4", className)} {...props}>
       <div className="w-full max-w-md">
-        {step === 1 && <StepOne nextStep={nextStep} prevStep={prevStep} />}
-        {step === 2 && <StepTwo nextStep={nextStep} prevStep={prevStep} />}
-        {step === 3 && <StepThree nextStep={nextStep} prevStep={prevStep} />}
-      </div>
-    </div>
-  );
-}
-
-function StepOne({ nextStep, prevStep }: { nextStep: () => void; prevStep: () => void }) {
-  return (
-    <div className="p-6 border rounded-lg shadow-sm">
-      <h2 className="text-xl font-semibold mb-4">Paso 1</h2>
-      <input type="text" placeholder="Ingrese su nombre de usuario" className="w-full p-2 border rounded mb-4" />
-      <div className="flex justify-between">
-        <Button onClick={prevStep} className="bg-gray-400">Regresar</Button>
-        <Button onClick={nextStep} className="bg-emerald-400">Continuar</Button>
-      </div>
-    </div>
-  );
-}
-
-function StepTwo({ nextStep, prevStep }: { nextStep: () => void; prevStep: () => void }) {
-  return (
-    <div className="p-6 border rounded-lg shadow-sm">
-      <h2 className="text-xl font-semibold mb-4">Paso 2</h2>
-      <InputOTP maxLength={6}>
-  <InputOTPGroup>
-    <InputOTPSlot index={0} />
-    <InputOTPSlot index={1} />
-    <InputOTPSlot index={2} />
-  </InputOTPGroup>
-  <InputOTPSeparator />
-  <InputOTPGroup>
-    <InputOTPSlot index={3} />
-    <InputOTPSlot index={4} />
-    <InputOTPSlot index={5} />
-  </InputOTPGroup>
-</InputOTP>
-      <div className="flex justify-between">
-        <Button onClick={prevStep} className="bg-gray-400">Regresar</Button>
-        <Button onClick={nextStep} className="bg-emerald-400">Continuar</Button>
-      </div>
-    </div>
-  );
-}
-
-function StepThree({ nextStep, prevStep }: { nextStep: () => void; prevStep: () => void }) {
-  return (
-    <div className="p-6 border rounded-lg shadow-sm">
-      <h2 className="text-xl font-semibold mb-4">Paso 3</h2>
-      <Input
+        {/* Logo */}
+        <Card className="border-none shadow-sm">
+        <div  className="flex justify-center">
+                    <Image 
+                    src="/image.svg"
+                    alt="Logo"
+                    width={125}
+                    height={125}
+                    layout="fixed"
+                    />
+                    </div>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-2xl text-center text-[#0a2540]">Restablecer Contaseña</CardTitle>
+          </CardHeader>
+          <div>
+          <p>
+            Para restablecer su contraseña, ingrese su nombre de usuario o número de celular 
+            y siga las instrucciones que recibirá por correo electrónico.
+            </p>
+            <p className="text-gray-500 text-sm">
+              Si aún no ha recibido el correo, asegúrese de verificar su bandeja de entrada y de spam.
+            </p>
+            <p className="text-gray-500 text-sm">
+              Si aún no puede recuperar su contraseña, póngase en contacto con el administrador del sitio.
+            </p>
+            <Button className="w-full mt-6" size="lg">
+              Restablecer Contraseña
+            </Button>
+          </div>
+          <CardContent>
+            <form>
+              <div className="flex flex-col gap-5">
+                <div className="grid gap-2">
+                  <div className="relative">
+                    <div className="absolute left-3 top-3 text-gray-400">
+                      <User2Icon size={18} />
+                    </div>
+                    <Input
+                      id="username"
+                      className="pl-10 py-6 border-gray-200"
+                      placeholder="Nombre de usuario o numero celular"
+                    />
+                  </div>
+                </div>
+                <div className="grid gap-2">
+                  <div className="relative">
+                    <div className="absolute left-3 top-3 text-gray-400">
+                      <FileLock size={18} />
+                    </div>
+                    <Input
                       id="password"
+                      type={showPassword ? "text" : "password"}
                       className="pl-10 py-6 pr-10 border-gray-200"
                       placeholder="Contraseña"
                     />
                     <button
                       type="button"
                       className="absolute right-3 top-3 text-gray-400"
-                    ></button>  
-      <div className="flex justify-between">
-        <Button onClick={prevStep} className="bg-gray-400">Regresar</Button>
-        <Button onClick={nextStep} className="bg-emerald-400">Continuar</Button>
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <a href="#" className="text-sm text-gray-500 hover:text-gray-700">
+                    ¿Olvidó su contraseña?
+                  </a>
+                </div>
+                <Button type="submit" className="w-full py-6 bg-emerald-400 hover:bg-emerald-500 text-white">
+                  Acceder
+                </Button>
+              </div>
+              <div className="mt-6 text-center text-sm text-gray-500">
+                ¿Nuevo usuario?{" "}
+                <a href="#" className="text-emerald-500 hover:text-emerald-600 font-medium">
+                  Crear usuario
+                </a>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </div>
-  );
+  )
 }
+
