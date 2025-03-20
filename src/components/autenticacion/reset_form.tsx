@@ -3,12 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSeparator,
-  InputOTPSlot,
-} from "@/components/ui/input-otp";
+
 
 export function ResetForm() {
   const [step, setStep] = useState(1);
@@ -49,19 +44,7 @@ function StepTwo({ nextStep, prevStep }: { nextStep: () => void; prevStep: () =>
   return (
     <div className="p-6 border rounded-lg shadow-sm">
       <h2 className="text-xl font-semibold mb-4">Paso 2</h2>
-      <InputOTP maxLength={6}>
-        <InputOTPGroup>
-          <InputOTPSlot index={0} />
-          <InputOTPSlot index={1} />
-          <InputOTPSlot index={2} />
-        </InputOTPGroup>
-        <InputOTPSeparator />
-        <InputOTPGroup>
-          <InputOTPSlot index={3} />
-          <InputOTPSlot index={4} />
-          <InputOTPSlot index={5} />
-        </InputOTPGroup>
-      </InputOTP>
+     
       <div className="flex justify-between mt-4">
         <Button onClick={prevStep} className="bg-gray-400">
           Regresar

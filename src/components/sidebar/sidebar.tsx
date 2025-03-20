@@ -10,9 +10,9 @@ interface SidebarProps {
   onClose: () => void
 }
 
-export function Sidebar({ isOpen, onClose }: SidebarProps) {
+export function Sidebar({ isOpen }: SidebarProps) {
   const [activeItem, setActiveItem] = useState("Ciudad")
-  const [rating, setRating] = useState(0)
+  const [rating] = useState(0)
 
   const menuItems = [
     { name: "Ciudad", icon: <MapPin size={20} /> },
