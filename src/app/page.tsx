@@ -59,8 +59,8 @@ export default function Home() {
                 <Button
                     variant="outline"
                     className="mt-8  font-bold text-2xl
-          bg-emerald-950 text-emerald-400 hover:bg-emerald-400 
-              border-none w-90 h-15 rounded-full absolute -top-9 -left-4 "
+            bg-emerald-950 text-emerald-400 hover:bg-emerald-400 
+            border-none w-90 h-15 rounded-full absolute -top-9 -left-4 "
                 >
                     Sobre nosotros
                 </Button>
