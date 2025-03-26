@@ -121,3 +121,8 @@
     @apply bg-background text-foreground;
   }
 }
+
+/*ocultar la barra de scroll */
+::-webkit-scrollbar {
+  display: none;
+}

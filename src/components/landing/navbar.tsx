@@ -5,8 +5,14 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Menu, X, Download } from "lucide-react"
 
-// Componente para el logo de Movu
-const Logo = () => (
+// Definir tipos para enlaces de navegación
+interface NavLink {
+  name: string;
+  href: string;
+}
+
+// Componente de Logo con TypeScript
+const Logo: React.FC = () => (
   <div className="flex items-center">
     <Image
       src="/Logo_movu.png"
@@ -19,7 +25,7 @@ const Logo = () => (
 )
 
 // Enlaces de navegación
-const navLinks = [
+const navLinks: NavLink[] = [
   { name: "Inicio", href: "/" },
   { name: "Ciudades", href: "#ciudades" },
   { name: "Servicios", href: "#servicios" },
@@ -28,42 +34,35 @@ const navLinks = [
 ]
 
 export function NavBar() {
-  // Estado para controlar el menú móvil
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  // Estado para la sección activa
-  const [activeSection, setActiveSection] = useState("/")
-  // Estado para controlar la opacidad del navbar
-  const [isScrolled, setIsScrolled] = useState(false)
+  // Estados con tipado explícito
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false)
+  const [activeSection, setActiveSection] = useState<string>("/")
+  const [isScrolled, setIsScrolled] = useState<boolean>(false)
   
-  // Efecto para detectar el desplazamiento y cambiar la opacidad
+  // Efecto de opacidad al desplazarse
   useEffect(() => {
     const handleScrollOpacity = () => {
-      // Cambiar el estado cuando el scroll es mayor a 20px
-      if (window.scrollY > 20) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
+      setIsScrolled(window.scrollY > 20);
     };
     
     window.addEventListener("scroll", handleScrollOpacity);
     return () => window.removeEventListener("scroll", handleScrollOpacity);
   }, []);
   
-  // Efecto para detectar la sección activa basada en el scroll
+  // Efecto de detección de sección activa
   useEffect(() => {
     const handleScroll = () => {
       const sections = navLinks
         .map(link => link.href.replace('#', ''))
         .filter(id => id !== "/");
       
-      // Si estamos en la página inicial
+      // Verificación de página inicial
       if (window.scrollY < 100) {
         setActiveSection("/");
         return;
       }
       
-      // Revisamos cada sección desde la última a la primera (para priorizar las secciones inferiores)
+      // Detección de sección
       for (let i = sections.length - 1; i >= 0; i--) {
         const section = sections[i];
         if (section === "/") continue;
@@ -71,7 +70,6 @@ export function NavBar() {
         const element = document.getElementById(section);
         if (element) {
           const rect = element.getBoundingClientRect();
-          // Ajustamos la condición para que detecte mejor las secciones inferiores
           if (rect.top <= 200) {
             setActiveSection(`#${section}`);
             break;
@@ -80,7 +78,7 @@ export function NavBar() {
       }
     };
     
-    // Detectar la ruta actual al cargar
+    // Detectar ruta actual al cargar
     const path = window.location.pathname;
     const hash = window.location.hash;
     setActiveSection(hash || path || "/");
@@ -89,9 +87,39 @@ export function NavBar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
   
-  // Manejador para clics en enlaces
-  const handleLinkClick = (href, e, isDesktopNav = false) => {
-    // Si es un enlace con ancla (#), prevenir la navegación por defecto
+  // Función de desplazamiento suave
+  const smoothScrollToSection = (targetElement: HTMLElement) => {
+    // Agregar desplazamiento para compensar el encabezado fijo
+    const headerOffset = 80; // Ajustar este valor según la altura del encabezado
+    const elementPosition = targetElement.getBoundingClientRect().top;
+    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+    window.scrollTo({
+      top: offsetPosition,
+      behavior: 'smooth'
+    });
+  };
+  
+  // Controlador de clics en enlaces con tipo de evento explícito
+  const handleLinkClick = (
+    href: string, 
+    e: React.MouseEvent<HTMLAnchorElement>
+  ) => {
+    // Manejo de sección de inicio (logo o enlace de "Inicio")
+    if (href === "/" || href === "") {
+      e.preventDefault();
+      
+      // Desplazamiento suave a la parte superior de la página
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+      
+      setIsMenuOpen(false);
+      return;
+    }
+    
+    // Manejo de enlaces de anclaje
     if (href.startsWith('#')) {
       e.preventDefault();
       
@@ -99,46 +127,25 @@ export function NavBar() {
       const targetElement = document.getElementById(targetId);
       
       if (targetElement) {
-        // Para versión escritorio, saltar directamente a la sección sin animación
-        if (isDesktopNav) {
-          // Calcular la posición del elemento
-          const rect = targetElement.getBoundingClientRect();
-          const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-          const targetPosition = rect.top + scrollTop;
-          
-          // Saltar directamente a la posición
-          window.scrollTo({
-            top: targetPosition,
-            behavior: 'auto' // 'auto' en lugar de 'smooth' para ir directo
-          });
-        } else {
-          // Para móvil mantener el scroll suave
-          targetElement.scrollIntoView({ behavior: 'smooth' });
-        }
-        
-        // Actualizar la sección activa sin cambiar la URL
-        setActiveSection(href);
+        // Usar desplazamiento suave consistente para escritorio y móvil
+        smoothScrollToSection(targetElement);
       }
-    } else {
-      // Para enlaces normales (como "/"), permitir el comportamiento por defecto
-      setActiveSection(href);
     }
     
-    // Cerrar el menú móvil
     setIsMenuOpen(false);
   };
   
-  // Cerrar menú al hacer clic fuera
+  // Controlador de clics fuera del menú móvil
   useEffect(() => {
-    const handleClickOutside = (event) => {
+    const handleClickOutside = (event: MouseEvent) => {
       const menuContainer = document.getElementById("mobile-menu-container");
       const menuButton = document.getElementById("mobile-menu-button");
       
       if (isMenuOpen && 
           menuContainer && 
-          !menuContainer.contains(event.target) && 
+          !menuContainer.contains(event.target as Node) && 
           menuButton && 
-          !menuButton.contains(event.target)) {
+          !menuButton.contains(event.target as Node)) {
         setIsMenuOpen(false);
       }
     };
@@ -168,14 +175,14 @@ export function NavBar() {
             </div>
           </Link>
           
-          {/* Navegación para escritorio */}
+          {/* Navegación de escritorio */}
           <nav className="hidden md:flex items-center space-x-6">
             <div className="flex items-center space-x-1">
               {navLinks.map((link) => (
                 <Link 
                   key={link.name} 
                   href={link.href}
-                  onClick={(e) => handleLinkClick(link.href, e, true)} // true indica que es desktop
+                  onClick={(e) => handleLinkClick(link.href, e)} 
                   className={`px-3 py-2 rounded-lg transition-all duration-200 relative ${
                     activeSection === link.href 
                       ? "text-emerald-600 font-medium" 
@@ -197,9 +204,8 @@ export function NavBar() {
             </Button>
           </nav>
           
-          {/* Contenedor del botón y menú móvil */}
+          {/* Contenedor de menú móvil */}
           <div className="md:hidden relative">
-            {/* Botón de menú móvil - MODIFICADO PARA AGRANDAR */}
             <button
               id="mobile-menu-button"
               className={`relative z-10 p-2 rounded-lg transition-all duration-200 text-gray-700 
@@ -212,7 +218,7 @@ export function NavBar() {
               {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
             
-            {/* Menú móvil flotante */}
+            {/* Menú móvil */}
             {isMenuOpen && (
               <div 
                 id="mobile-menu-container"
@@ -229,7 +235,7 @@ export function NavBar() {
                               ? "bg-emerald-50 text-emerald-600 font-medium border-l-4 border-emerald-500"
                               : "text-gray-700 hover:bg-gray-50"
                           }`}
-                          onClick={(e) => handleLinkClick(link.href, e, false)} // false indica que es móvil
+                          onClick={(e) => handleLinkClick(link.href, e)}
                         >
                           {link.name}
                         </Link>
@@ -252,7 +258,7 @@ export function NavBar() {
         </div>
       </div>
       
-      {/* Estilos inline para la animación */}
+      {/* Estilos en línea para animación */}
       <style jsx global>{`
         @keyframes fadeInDown {
           from {

@@ -10,7 +10,12 @@ import { motion } from "framer-motion"
 import { useEffect, useState, useRef } from "react"
 
 // Componente de tarjeta de servicio modernizado con animaciones
-const ServiceCard = ({ title, icon, description }) => {
+type ServiceCardProps = {
+  title: string;
+  icon: React.ReactNode;
+  description: string;
+}
+const ServiceCard: React.FC<ServiceCardProps> = ({ title, icon, description }) => {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
@@ -45,8 +50,14 @@ const ServiceCard = ({ title, icon, description }) => {
   )
 }
 
+
 // Componente de tarjeta de ciudad disponible
-const CityCard = ({ city, image }) => {
+type CityCardProps = {
+  city: string; 
+  image: string;
+}
+
+const CityCard : React.FC<CityCardProps> = ({ city, image }) => {
   return (
     <motion.div 
       className="bg-white rounded-lg overflow-hidden shadow-lg cursor-pointer"
@@ -79,39 +90,45 @@ const CityCard = ({ city, image }) => {
 
 export default function Home() {
   // Referencias para la navegación por secciones
-  const heroRef = useRef(null);
-  const serviciosRef = useRef(null);
-  const ciudadesRef = useRef(null);
-  const acercaRef = useRef(null);
-  const contactoRef = useRef(null);
+  const heroRef =useRef<HTMLDivElement | null>(null);
+  const serviciosRef =useRef<HTMLDivElement | null>(null);
+  const ciudadesRef =useRef<HTMLDivElement | null>(null);
+  const acercaRef =useRef<HTMLDivElement | null>(null);
+  const contactoRef =useRef<HTMLDivElement | null>(null);
 
   // Efecto para actualizar los enlaces de navegación
   useEffect(() => {
-    // Función para actualizar los enlaces href del NavBar usando JavaScript
+    // Función para actualizar los enlaces href del NavBar
     const updateNavLinks = () => {
-      const navLinks = document.querySelectorAll('a[href^="#"]');
+      const navLinks = document.querySelectorAll<HTMLAnchorElement>('a[href^="#"]');
       navLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
+        link.addEventListener('click', (e: MouseEvent) => {
           e.preventDefault();
-          const targetId = link.getAttribute('href').substring(1);
+          const href = link.getAttribute('href');
+          if (!href) return;
+
+          const targetId = href.substring(1);
+
+          // Objeto que mapea los IDs de los enlaces a las referencias
           const targetRef = {
             'ciudades': ciudadesRef,
             'servicios': serviciosRef,
             'acerca': acercaRef,
             'contacto': contactoRef
           }[targetId];
-          
+
+          // Si existe la referencia, desplazarse hasta el objetivo
           if (targetRef && targetRef.current) {
             targetRef.current.scrollIntoView({ behavior: 'smooth' });
           }
         });
       });
     };
-    
+
     // Ejecutar después de que el componente se monte
     updateNavLinks();
   }, []);
-
+  
   // Definimos los servicios que ofrece Movu
   const services = [
     {
@@ -407,8 +424,8 @@ export default function Home() {
               <p className="text-gray-600 mb-4">
                 En las calles de Honduras, donde el 70% de transportistas como Isaac enfrentaban ingresos inestables y largas esperas 
                 improductivas, mientras profesionales de la construcción como Lucía veían sus proyectos estancados por problemas logísticos,
-                nació una idea transformadora. Olvin Elvir, junto a un equipo multidisciplinario de desarrolladores y diseñadores, 
-                identificaron esta brecha en el mercado y decidieron crear una solución tecnológica que conectara ambos mundos de manera
+                nació una idea transformadora. Gracias a nuestro equipo multidisciplinario de desarrolladores y diseñadores, 
+                que identificaron esta brecha en el mercado y decidieron crear una solución tecnológica que conectara ambos mundos de manera
                 eficiente y confiable.
               </p>
               <p className="text-gray-600 mb-6">
