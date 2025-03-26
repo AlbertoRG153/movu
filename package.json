@@ -22,6 +22,7 @@
     "dayjs": "^1.11.13",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.479.0",
+    "movu": "file:",
     "next": "15.2.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
