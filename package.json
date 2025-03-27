@@ -20,6 +20,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.13",
+    "framer-motion": "^12.5.0",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.479.0",
     "movu": "file:",
