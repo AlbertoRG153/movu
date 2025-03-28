@@ -15,11 +15,11 @@ export function Sidebar({ isOpen }: SidebarProps) {
   const [rating] = useState(0)
 
   const menuItems = [
-    { name: "Ciudad", icon: <MapPin size={20} /> },
-    { name: "Historial de solicitudes", icon: <FileText size={20} /> },
-    { name: "Entregas", icon: <Package size={20} /> },
-    { name: "Soporte Técnico", icon: <HeadphonesIcon size={20} /> },
-    { name: "Configuraciones", icon: <Settings size={20} /> },
+    { name: "Ciudad",  href:"/city", icon: <MapPin size={20} /> },
+    { name: "Historial", href:"/history", icon: <FileText size={20} /> },
+    { name: "Entregas", href:"/delivery", icon: <Package size={20} /> },
+    { name: "Soporte Técnico",  href:"/tsupport", icon: <HeadphonesIcon size={20} /> },
+    { name: "Configuraciones",  href:"/configuration",icon: <Settings size={20} /> },
   ]
 
   return (
@@ -56,7 +56,7 @@ export function Sidebar({ isOpen }: SidebarProps) {
       <div className="flex-1 overflow-y-auto">
         {menuItems.map((item) => (
           <Link
-            href={`/${item.name.toLowerCase().replace(/\s+/g, "-")}`}
+            href={item.href}
             key={item.name}
             onClick={() => setActiveItem(item.name)}
             className={cn(
