@@ -16,7 +16,7 @@ export function Sidebar({ isOpen }: SidebarProps) {
 
   const menuItems = [
     { name: "Ciudad",  href:"/city", icon: <MapPin size={20} /> },
-    { name: "Historial", href:"/history", icon: <FileText size={20} /> },
+    { name: "Historial de solicitud", href:"/history", icon: <FileText size={20} /> },
     { name: "Entregas", href:"/delivery", icon: <Package size={20} /> },
     { name: "Soporte Técnico",  href:"/tsupport", icon: <HeadphonesIcon size={20} /> },
     { name: "Configuraciones",  href:"/configuration",icon: <Settings size={20} /> },
