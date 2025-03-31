@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import React, { useState } from "react"
 import Link from "next/link"
 import  Image from "next/image"
 import { Button } from "@/components/ui/button"
@@ -49,9 +49,12 @@ export function NavBar() {
               </Link>
             ))}
 
-            {/* Botón de descarga */}
+            {/* Botón de Iniciar Sesion*/} 
+            <Link href="/login">
             <Button className="bg-emerald-400 hover:bg-emerald-500 text-950">
-                Descargar la app</Button>
+               Iniciar Sesion</Button>
+            </Link>
+            
           </nav>
           {/* Botón de menú móvil */}
           <button
