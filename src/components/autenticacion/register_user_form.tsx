@@ -3,10 +3,10 @@ import {  Building, Calendar, FileLock, Mail, Transgender, User2Icon} from "luci
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import  Image from "next/image"
-import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -16,13 +16,19 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import dayjs from "dayjs";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import "dayjs/locale/es";
+import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 export function RegisterUserForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
+  const [genero, setGenero] = useState("");
+  const [fecha, setFecha] = useState(dayjs());
+  const [open, setOpen] = useState(false);
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-     
       <Card>
         <CardHeader>
           <div  className="flex justify-center">
@@ -41,54 +47,45 @@ export function RegisterUserForm({
         </CardHeader>
         <CardContent>
           <form>
-            <div className="flex flex-col gap-6 ">
-              <div className="grid gap-2">
+            <div className="flex flex-col gap-2 py-2">
                 <Label htmlFor="" >   <User2Icon  size={15}/> Primer Nombre</Label>
                 <Input 
-                  id="email"
-                  type="email"
+                  id="firstName"
+                  type="text"
                   placeholder=" "
                   required
                 />
               </div>
-              </div>
 
-              <div className="flex flex-col gap-6 my-5">
-              <div className="grid gap-2">
+              <div className="flex flex-col gap-2 py-2">
                 <Label htmlFor=""  > <User2Icon size={15}/> Segundo Nombre</Label>
                 <Input
-                  id="email"
-                  type="email"
+                  id="secondName"
+                  type="text"
                   placeholder=""
                   required
                 />
               </div>
-              </div>
-              <div className="flex flex-col gap-6">
-              <div className="grid gap-2">
+              <div className="flex flex-col gap-2 py-2">
                 <Label htmlFor="" > <User2Icon size={15}/> Primer Apellido</Label>
                 <Input
-                  id="email"
-                  type="email"
+                  id=""
+                  type="text"
                   placeholder=" "
                   required
                 />
               </div>
-              </div>
               
-              <div className="flex flex-col gap-6">
-              <div className="grid gap-2">
+              <div className="flex flex-col gap-2 py-2 ">
                 <Label htmlFor=""  > <User2Icon  size={15}/> Segundo Apellido</Label>
                 <Input
-                  id="email"
-                  type="email"
+                  id="lastName"
+                  type="text"
                   placeholder="  "
                   required
                 />
               </div>
-              </div>
-              <div className="flex flex-col gap-6">
-              <div className="grid gap-2">
+              <div className="flex flex-col gap-2 py-2">
                 <Label htmlFor=""  ><Mail size={15}/> Correo</Label>
                 <Input
                   id="email"
@@ -97,57 +94,59 @@ export function RegisterUserForm({
                   required
                 />
               </div>
-              </div>
-              <div className="flex flex-col gap-6">
-              <div className="grid gap-2">
+              <div className="flex flex-col gap-2 py-2">
                 <Label htmlFor=""><FileLock size={15}/> Contrasena</Label>
                 <Input
-                  id="email"
-                  type="email"
+                  id="password"
+                  type="password"
                   placeholder=""
                   required
                 />
               </div>
+              <div className="flex flex-col gap-2 py-2">
+                <Label htmlFor=""> <Calendar  size={15}/> Fecha de nacimiento</Label>  
+    <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button variant="outline" className="w-full justify-start">
+            {fecha ? fecha.format("DD/MM/YYYY") : "Selecciona una fecha"}
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="p-4 w-fit">
+          <DateCalendar
+            value={fecha}
+            onChange={(newValue) => {
+              setFecha(newValue);
+              setOpen(false);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+    </LocalizationProvider>
               </div>
 
-              <div className="flex flex-col gap-6">
-              <div className="grid gap-2">
-                <Label htmlFor=""> <Calendar  size={15}/> Fecha de nacimiento</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder=" "
-                  required
-                />
-                <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <DemoContainer components={['DatePicker']}>
-                <DatePicker label="Basic date picker" />
-              </DemoContainer>
-            </LocalizationProvider> 
+              <div className="flex flex-col gap-2 py-2">
+                <Label htmlFor=""> <Transgender  size={17}/> Genero
+                </Label>
+                <Select value={genero} onValueChange={setGenero}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Selecciona tu género" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="masculino">Masculino</SelectItem>
+                  <SelectItem value="femenino">Femenino</SelectItem>
+                  <SelectItem value="otro">Otro</SelectItem>
+                </SelectContent>
+              </Select>
               </div>
-              </div>
-
-              <div className="flex flex-col gap-6">
-              <div className="grid gap-2">
-                <Label htmlFor=""> <Transgender  size={15}/> Genero</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder=""
-                  required
-                />
-              </div>
-              </div>
-              <div className="flex flex-col gap-6">
-              <div className="grid gap-2">
+              <div className="flex flex-col gap-2 py-2">
                 <Label htmlFor="">  <Building  size={15}/> Ciudad </Label>
                 <Input
-                  id="email"
-                  type="email"
+                  id="city"
+                  type="text"
                   placeholder=""
                   required
                 />
-              </div>
               </div>
 
             <div className="mt-4 text-center text-sm">
