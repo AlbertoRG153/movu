@@ -26,6 +26,7 @@ export function ResetForm() {
 function StepOne({ nextStep }: { nextStep: () => void }) {
   return (
     <div className="p-6 border rounded-lg shadow-sm">
+      
       <div  className="flex justify-center">
                 <Image 
                 src="/image.svg"
