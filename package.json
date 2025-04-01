@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "key": "value"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -19,6 +20,7 @@
     "@radix-ui/react-slot": "^1.1.2",
     "@supabase/supabase-js": "^2.49.3",
     "axios": "^1.8.4",
+    "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
@@ -26,7 +28,6 @@
     "framer-motion": "^12.5.0",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.479.0",
-    "movu": "file:",
     "next": "15.2.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
