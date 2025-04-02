@@ -116,7 +116,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
 
               <div className="mt-6 text-center text-sm text-gray-500">
                 ¿Nuevo usuario?{" "}
-                <a href="#" className="text-emerald-500 hover:text-emerald-600 font-medium">
+                <a href="/register" className="text-emerald-500 hover:text-emerald-600 font-medium">
                   Crear usuario
                 </a>
               </div>
