@@ -1,21 +1,21 @@
 import { NextResponse } from "next/server";
-import supabase from "@/lib/supabase/supabaseClient";
+import { supabase } from "@/lib/supabase/supabaseClient";
 import bcrypt from "bcryptjs"; // Para encriptar contraseñas
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { 
-      first_name, 
-      second_name, 
-      first_surname, 
-      second_surname, 
-      birthdate, 
-      genre, 
-      dni, 
-      email, 
-      password, 
-      id_city 
+    const {
+      first_name,
+      second_name,
+      first_surname,
+      second_surname,
+      birthdate,
+      genre,
+      dni,
+      email,
+      password,
+      id_city
     } = body;
 
     // Validar campos obligatorios
@@ -30,7 +30,7 @@ export async function POST(req: Request) {
       .eq("email", email)
       .single();
 
-    if (userError && userError.code !== "PGRST116") { 
+    if (userError && userError.code !== "PGRST116") {
       return NextResponse.json({ error: "Error al verificar usuario" }, { status: 500 });
     }
 
@@ -45,14 +45,14 @@ export async function POST(req: Request) {
     const { data, error } = await supabase
       .from("person")
       .insert([{
-        first_name, 
-        second_name, 
-        first_surname, 
-        second_surname, 
-        birthdate, 
-        genre, 
-        dni, 
-        email, 
+        first_name,
+        second_name,
+        first_surname,
+        second_surname,
+        birthdate,
+        genre,
+        dni,
+        email,
         password: hashedPassword,
         id_city
       }]);
