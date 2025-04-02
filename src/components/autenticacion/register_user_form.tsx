@@ -64,8 +64,8 @@ export function RegisterUserForm({
         e.preventDefault();
         setLoading(true);
         setErrorMessage("");
-
-        //ver que no haya campos vacios
+    
+        // Verificar campos vacíos
         for (const key in formData) {
             if (!formData[key as keyof typeof formData]) {
                 setErrorMessage("Todos los campos son obligatorios.");
@@ -73,12 +73,32 @@ export function RegisterUserForm({
                 return;
             }
         }
-
-        const { error } = await supabase.from("person").insert([formData]);
-
-        if (error) {
-            setErrorMessage("Error al registrar usuario: " + error.message);
-        } else {
+    
+        try {
+            // Encriptar la contraseña antes de guardarla
+            const { data: hashedPassword, error: hashError } = await supabase.rpc(
+                'hash_password',
+                { password: formData.password }
+            );
+    
+            if (hashError) {
+                throw hashError;
+            }
+    
+            // Crear un nuevo objeto con la contraseña encriptada
+            const secureFormData = {
+                ...formData,
+                password: hashedPassword
+            };
+    
+            const { error } = await supabase
+                .from("person")
+                .insert([secureFormData]);
+    
+            if (error) {
+                throw error;
+            }
+    
             alert("Usuario registrado con éxito");
             setFormData({
                 first_name: "",
@@ -92,9 +112,10 @@ export function RegisterUserForm({
                 genre: "",
                 id_city: "",
             });
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : "Error desconocido";
+            setErrorMessage("Error al registrar usuario: " + errorMessage);
         }
-
-        setLoading(false);
     };
 
     return (
