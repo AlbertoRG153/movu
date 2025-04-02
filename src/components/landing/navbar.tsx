@@ -174,25 +174,7 @@ export function NavBar() {
                         <Logo />
                     </Link>
 
-                    {/* Navegación para escritorio */}
-                    <nav className="hidden md:flex items-center space-x-8">
-                        {navLinks.map((link) => (
-                            <Link
-                                key={link.name}
-                                href={link.href}
-                                className="text-gray-700 hover:text-emerald-500 font-medium"
-                            >
-                                {link.name}
-                            </Link>
-                        ))}
-
-                        {/* Botón de Iniciar Sesion*/}
-                        <Link href="/login">
-                            <Button className="bg-emerald-400 hover:bg-emerald-500 text-950">
-                                Iniciar Sesion
-                            </Button>
-                        </Link>
-                    </nav>
+                  
                     {/* Botón de menú móvil */}
                     <button
                         className="md:hidden"
@@ -207,6 +189,8 @@ export function NavBar() {
                     {/* Navegación de escritorio */}
                     <nav className="hidden md:flex items-center space-x-6">
                         <div className="flex items-center space-x-1">
+                        
+
                             {navLinks.map((link) => (
                                 <Link
                                     key={link.name}
@@ -227,6 +211,12 @@ export function NavBar() {
                                 </Link>
                             ))}
                         </div>
+
+                        <Link href="/login">
+                            <Button className="bg-emerald-400 hover:bg-emerald-500 text-950">
+                                Iniciar Sesion
+                            </Button>
+                        </Link>
 
                         {/* Botón de descarga */}
                         <Button className="bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg ml-2 flex items-center gap-2 shadow-sm transition-all duration-200 hover:shadow-md">
