@@ -187,7 +187,7 @@ export function LoginForm({
                                     style={{ backgroundColor: "#092A39" }}
                                     className="w-full py-6 bg-emerald-400 hover:bg-emerald-500 text-white"
                                 >
-                                    Acceder modo Conductor
+                                    Acceder Modo Conductor
                                 </Button>
                             </Link>
                         </form>

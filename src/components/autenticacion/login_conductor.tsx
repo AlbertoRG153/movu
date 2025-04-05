@@ -77,7 +77,7 @@ export function LoginConductor({
                     </div>
                     <CardHeader className="pb-4">
                         <CardTitle className="text-2xl text-center text-[#0a2540]">
-                            Inicio de Sesión modo Conductor
+                            Inicio de Sesión Modo Conductor
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -175,7 +175,7 @@ export function LoginConductor({
                                     style={{ backgroundColor: "#2DF1A9" }}
                                     className="w-full py-6 bg-emerald-400 hover:bg-emerald-500 text-white"
                                 >
-                                    Acceder modo Conductor
+                                    Acceder Modo Cliente
                                 </Button>
                             </Link>
                         </form>
