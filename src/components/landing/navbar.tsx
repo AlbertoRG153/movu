@@ -25,6 +25,7 @@ const Logo: React.FC = () => (
     </div>
 );
 
+
 // Enlaces de navegación
 const navLinks: NavLink[] = [
     { name: "Inicio", href: "/" },
@@ -173,7 +174,11 @@ export function NavBar() {
                     <Link href="/" className="">
                         <Logo />
                     </Link>
-
+                    {/*<Link href="/login" className="md:hidden">
+                     <Button className="bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm">
+                     Iniciar Sesión
+                   </Button>
+                   </Link>*/}
                   
                     {/* Botón de menú móvil */}
                     <button
@@ -181,9 +186,7 @@ export function NavBar() {
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
                         aria-label={isMenuOpen ? "Cerrar menú" : "Abrir menú"}
                     >
-                        <div className="transition-transform duration-300 group-hover:scale-105">
-                            <Logo />
-                        </div>
+                        
                     </button>
 
                     {/* Navegación de escritorio */}
