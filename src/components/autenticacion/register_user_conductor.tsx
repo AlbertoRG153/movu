@@ -124,7 +124,7 @@ export function RegisterUserConductor({
                 <CardHeader>
                     <div className="flex justify-center">
                         <Image
-                            src="/logo_movu_v3.png"
+                            src="/Logo_movu_v3.png"
                             alt="Logo"
                             width={125}
                             height={125}
