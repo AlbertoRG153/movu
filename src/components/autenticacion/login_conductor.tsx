@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { Eye, EyeOff, FileLock, User2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -11,12 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { loginUser } from "@/lib/supabase/supabaseFuntions";
 
-/*interface FormData {
-  email: string;
-  password: string;
-}*/
 
-export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
+export function LoginConductor({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState(""); 
   const [password, setPassword] = useState("");
@@ -56,7 +51,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
         <Card className="border-none shadow-sm">
           <div className="flex justify-center">
             <Image 
-              src="/image.svg"
+              src="/Logo_movu_v2.png"
               alt="Logo"
               width={125}
               height={125}
@@ -64,7 +59,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
             />
           </div>
           <CardHeader className="pb-4">
-            <CardTitle className="text-2xl text-center text-[#0a2540]">Inicio de Sesión</CardTitle>
+            <CardTitle className="text-2xl text-center text-[#0a2540]">Inicio de Sesión modo Conductor</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit}>
@@ -110,30 +105,17 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
                   </a>
                 </div>
 
-                <Button type="submit" className="w-full py-6 bg-emerald-400 hover:bg-emerald-500 text-white">
+                <Button type="submit" style={{ backgroundColor: '#092A39' }} className="w-full py-6 bg-emerald-400 hover:bg-emerald-500 text-white">
                   Acceder
                 </Button>
               </div>
 
               <div className="mt-6 text-center text-sm text-gray-500">
                 ¿Nuevo usuario?{" "}
-                <a href="/register" className="text-emerald-500 hover:text-emerald-600 font-medium">
+                <a href="/register_conductor" className="text-emerald-500 hover:text-emerald-600 font-medium">
                   Crear usuario
                 </a>
-              </div><br /><br />
-
-              <div className="text-center">
-                  <a className="text-sm text-gray-500 hover:text-gray-700">
-                    ¿Te gustaria trabajar con nosotros?
-                  </a>
-                </div><br />
-
-              <Link href="/login_conductor">
-                <Button type="submit" style={{ backgroundColor: '#092A39' }} className="w-full py-6 bg-emerald-400 hover:bg-emerald-500 text-white">
-                  Acceder modo Conductor
-                </Button>
-              </Link>
-              
+              </div>
             </form>
           </CardContent>
         </Card>

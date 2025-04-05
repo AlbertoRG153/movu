@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/lib/supabase/supabaseClient";
 
-export function RegisterUserForm({
+export function RegisterUserConductor({
     className,
     ...props
 }: React.ComponentPropsWithoutRef<"div">) {
@@ -99,7 +99,7 @@ export function RegisterUserForm({
                 throw error;
             }
     
-            alert("Usuario registrado con éxito");
+            alert("Conductor registrado con éxito");
             setFormData({
                 first_name: "",
                 second_name: "",
@@ -124,7 +124,7 @@ export function RegisterUserForm({
                 <CardHeader>
                     <div className="flex justify-center">
                         <Image
-                            src="/image.svg"
+                            src="/Logo_movu_v3.png"
                             alt="Logo"
                             width={125}
                             height={125}
@@ -132,7 +132,7 @@ export function RegisterUserForm({
                         />
                     </div>
                     <CardTitle className="text-2xl text-center text-[#0a2540]">
-                        Registro Cliente
+                        Registro Conductor
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
