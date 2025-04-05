@@ -1,6 +1,7 @@
 // @/lib/supabase/supabaseFuntions.ts
 import { createClient } from '@supabase/supabase-js';
 
+
 // Inicializa el cliente de Supabase
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
@@ -74,4 +75,14 @@ export async function getProjects(): Promise<Person[]> {
     second_name: item.second_name,
     email: item.email,
   })) as Person[];
+}
+
+
+//Restablecer contraseña
+export async function resetPassword(email: string) {
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/reset-password`,
+  });
+
+  if (error) throw error;
 }
