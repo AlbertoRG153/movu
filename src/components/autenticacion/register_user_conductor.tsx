@@ -19,6 +19,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/lib/supabase/supabaseClient";
+import { useRouter } from "next/navigation";
 
 export function RegisterUserConductor({
     className,
@@ -39,6 +40,7 @@ export function RegisterUserConductor({
     });
     const [loading, setLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
+    const router = useRouter(); // Para redireccionar después del registro
 
     useEffect(() => {
         async function fetchCities() {
@@ -75,31 +77,31 @@ export function RegisterUserConductor({
         }
     
         try {
-            // Encriptar la contraseña antes de guardarla
             const { data: hashedPassword, error: hashError } = await supabase.rpc(
                 'hash_password',
                 { password: formData.password }
             );
-    
+        
             if (hashError) {
                 throw hashError;
             }
-    
-            // Crear un nuevo objeto con la contraseña encriptada
+        
             const secureFormData = {
                 ...formData,
                 password: hashedPassword
             };
-    
+        
             const { error } = await supabase
                 .from("person")
                 .insert([secureFormData]);
-    
+        
             if (error) {
                 throw error;
             }
-    
+        
             alert("Conductor registrado con éxito");
+            router.push("/carrier_register/information"); 
+        
             setFormData({
                 first_name: "",
                 second_name: "",
@@ -115,6 +117,8 @@ export function RegisterUserConductor({
         } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : "Error desconocido";
             setErrorMessage("Error al registrar usuario: " + errorMessage);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -124,7 +128,7 @@ export function RegisterUserConductor({
                 <CardHeader>
                     <div className="flex justify-center">
                         <Image
-                            src="/Logo_movu_v3.png"
+                            src="/Logo_movu_solido_2.png"
                             alt="Logo"
                             width={125}
                             height={125}
