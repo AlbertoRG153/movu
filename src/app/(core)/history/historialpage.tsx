@@ -1,5 +1,7 @@
 "use client"
 
+import Link from "next/link"
+
 
 
 interface TripRecord {
@@ -11,7 +13,7 @@ interface TripRecord {
   destination: string
 }
 
-const tripHistory: TripRecord[] = [
+ export const tripHistory: TripRecord[] = [
   {
     id: 1,
     date: "7 feb",
@@ -64,8 +66,10 @@ export default function HistorialClient() {
         </div>
 
         <div className="divide-y divide-gray-800">
-          {tripHistory.map((trip) => (
-            <div key={trip.id} className="p-4 px-2 bg-[#0c2d40] cursor-pointer">
+          {tripHistory.map((trip) => ( 
+            // Link a la página de detalles del viaje
+            <Link key={trip.id} href={`/history/${trip.id}`}>
+            <div key={trip.id} className=" hover:bg-emerald-950  p-4 px-2 bg-[#0c2d40] cursor-pointer">
               <div className="flex justify-between mb-2">
                 <div className="flex items-center gap-2 text-white">
                   <span className="font-medium">{trip.date},</span>
@@ -88,6 +92,7 @@ export default function HistorialClient() {
                 </div>
               </div>
             </div>
+            </Link>
           ))}
         </div>
       </div>
