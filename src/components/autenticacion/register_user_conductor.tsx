@@ -100,6 +100,7 @@ export function RegisterUserConductor({
             }
         
             alert("Conductor registrado con éxito");
+            localStorage.setItem("dni", formData.dni);
             router.push("/carrier_register/information"); 
         
             setFormData({
