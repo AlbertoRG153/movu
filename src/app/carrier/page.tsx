@@ -14,13 +14,6 @@ const CarrierHome = () => {
 
   return (
     <div className="min-h-screen bg-[#0a2540] text-white flex flex-col items-center justify-center px-4 py-10">
-        <Image
-            src="/white.png"
-                alt="Logo"
-                width={180}
-                height={180}
-                layout="fixed"
-                        />
       <h1 className="text-3xl font-bold mb-4">¡Bienvenido , {user?.username || "Conductor"} </h1>
 
       <p className="text-sm text-gray-300 mb-6">
@@ -52,7 +45,13 @@ const CarrierHome = () => {
       </div>
 
       <div className="mt-10">
-    
+      <Image
+            src="/white.png"
+                alt="Logo"
+                width={180}
+                height={180}
+                layout="fixed"
+                        />
       </div>
     </div>
   );
