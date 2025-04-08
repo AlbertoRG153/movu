@@ -21,9 +21,11 @@ const CarrierHome = () => {
                 height={180}
                 layout="fixed"
                         />
-      <h1 className="text-3xl font-bold mb-4">¡Bienvenido , {user?.username || "Conductor"}! </h1>
+      <h1 className="text-3xl font-bold mb-4">¡Bienvenido , {user?.username || "Conductor"} </h1>
 
-      <p className="text-sm text-gray-300 mb-6">Gestiona tus viajes y perfil .</p>
+      <p className="text-sm text-gray-300 mb-6">
+      Explora tu panel de conductor  y  mejora tu experiencia en carretera.
+      Todo lo que necesitás en un solo lugar.</p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-xl">
         {/* Botón de Iniciar Viaje */}
