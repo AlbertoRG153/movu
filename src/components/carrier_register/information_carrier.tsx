@@ -1,5 +1,5 @@
 import Link from "next/link";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export function InformationCarrier() {
   const [, setAccepted] = useState(false);
@@ -9,6 +9,13 @@ export function InformationCarrier() {
     setAccepted(true);
     alert('Archivos enviados correctamente');
   };
+  useEffect(() => {
+    const dni = localStorage.getItem("dni");
+    if (dni) {
+      console.log("DNI del conductor:", dni);
+      // Puedes usarlo para hacer una consulta con Supabase, por ejemplo.
+    }
+  }, []);  
 
   return (
     <div className="min-h-screen bg-[#0D3A45] flex flex-col items-center justify-between py-10 text-white relative">

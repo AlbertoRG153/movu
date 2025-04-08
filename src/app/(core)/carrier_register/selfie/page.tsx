@@ -30,12 +30,15 @@ export default function SelfiePage() {
 
       <h1 className="text-xl font-semibold mt-20 mb-6">Selfie</h1>
 
-      <div className="bg-white text-black p-6 rounded-lg w-11/12 max-w-md flex flex-col items-center">
-        <Image
-          src={imagePreview || "/selfie.png"}
-          alt="Ejemplo selfie"
-          className="w-48 h-auto rounded mb-4"
-        />
+      <div className="relative w-48 h-48 mb-4">
+  <Image
+  src={imagePreview || "/selfie.png"}
+  alt="Ejemplo selfie"
+  width={192}
+  height={192}
+  className="rounded mb-4"
+/>
+
         <input
           type="file"
           accept="image/*"

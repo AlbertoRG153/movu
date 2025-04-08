@@ -1,13 +1,14 @@
 "use client";
 
 import type React from "react";
-
-import { useState } from "react";
+import { supabase } from "@/lib/supabase/supabaseClient";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronRight, Menu, Plus } from "lucide-react";
-import { cn } from "@/lib/utils";
+import {  Menu, Plus } from "lucide-react";
+
+
 import {
     Select,
     SelectContent,
@@ -18,7 +19,6 @@ import {
 import Image from "next/image";
 
 export default function ShippingForm() {
-    const [pickupLocation, setPickupLocation] = useState("");
     const [destination, setDestination] = useState("");
     const [pickupTime, setPickupTime] = useState({
         date: "",
@@ -34,7 +34,6 @@ export default function ShippingForm() {
         e.preventDefault();
         // Handle form submission logic here
         console.log({
-            pickupLocation,
             destination,
             pickupTime,
             description,
@@ -49,6 +48,80 @@ export default function ShippingForm() {
             setImage(e.target.files[0]);
         }
     };
+
+    const [serviceType, setServiceType] = useState("");
+
+    const [weight, setWeight] = useState("");
+
+    // Add this with your other state declarations
+const [pesoCarga, setPesoCarga] = useState("Kg"); // Default to Kg
+
+{/* FORMULA PARA EL PRECIO SUGERIDO */}
+interface VehicleType {
+  id: string;
+  name: string;
+  load_capacity_kg: number;
+}
+
+// In your component:
+const [vehicleTypes, setVehicleTypes] = useState<VehicleType[]>([]);
+
+// Fetch vehicle types on component mount
+useEffect(() => {
+  const fetchVehicleTypes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('vehicle_type')
+        .select('*');
+      
+      if (error) throw error;
+      
+      if (data) {
+        setVehicleTypes(data);
+      }
+    } catch (error) {
+      console.error("Error fetching vehicle types:", error);
+    }
+  };
+
+  fetchVehicleTypes();
+}, []);
+
+// Then adjust your calculation function
+const calculateSuggestedPrice = () => {
+  const w = parseFloat(weight);
+  
+  if (isNaN(w) || w <= 0 || !vehicleType) return 0;
+  
+  // Find the selected vehicle in our fetched data
+  const selectedVehicleData = vehicleTypes.find(v => v.id === vehicleType);
+  
+  if (!selectedVehicleData) return 0;
+  
+  // Pricing data based on vehicle types
+  const getPricingByCapacity = (capacity: number) => {
+    if (capacity <= 1000) return { baseRate: 500, ratePerKm: 10, ratePerKg: 2 };
+    if (capacity <= 2000) return { baseRate: 700, ratePerKm: 12, ratePerKg: 2.5 };
+    if (capacity <= 5000) return { baseRate: 900, ratePerKm: 14, ratePerKg: 3 };
+    if (capacity <= 8000) return { baseRate: 1200, ratePerKm: 18, ratePerKg: 3.5 };
+    if (capacity <= 10000) return { baseRate: 1500, ratePerKm: 20, ratePerKg: 4 };
+    if (capacity <= 15000) return { baseRate: 2000, ratePerKm: 25, ratePerKg: 5 };
+    return { baseRate: 1100, ratePerKm: 16, ratePerKg: 3.2 }; // Default for very large vehicles
+  };
+  
+  const pricing = getPricingByCapacity(selectedVehicleData.load_capacity_kg);
+  const maxWeight = selectedVehicleData.load_capacity_kg;
+  
+  if (w > maxWeight) {
+    return pricing.baseRate + maxWeight * pricing.ratePerKg;
+  }
+  
+  const standardDistance = 10;
+  const price = pricing.baseRate + (standardDistance * pricing.ratePerKm) + (w * pricing.ratePerKg);
+  
+  return price;
+};
+{/* FORMULA PARA EL PRECIO SUGERIDO */}
 
     return (
         <div className="bg-gray-100 min-h-screen flex flex-col">
@@ -68,22 +141,13 @@ export default function ShippingForm() {
                     <label className="text-sm text-gray-700 mb-1 block">
                         Lugar de recogida
                     </label>
-                    <div
-                        className="bg-white rounded-lg shadow-sm p-4 flex justify-between items-center cursor-pointer"
-                        onClick={() => {
-                            /* Open location picker */
-                            setPickupLocation("Nueva Ubicación");
-                        }}
-                    >
-                        <span
-                            className={cn(
-                                "text-gray-700",
-                                !pickupLocation && "text-gray-400"
-                            )}
-                        >
-                            {pickupLocation || "Seleccione un lugar"}
-                        </span>
-                        <ChevronRight className="text-gray-400" size={20} />
+                    <div className="bg-white rounded-lg shadow-sm p-4">
+                        <Input
+                            placeholder="Seleccione un lugar"
+                            value={destination}
+                            onChange={(e) => setDestination(e.target.value)}
+                            className="border-none shadow-none focus-visible:ring-0 p-0 h-auto"
+                        />
                     </div>
                 </div>
 
@@ -149,15 +213,48 @@ export default function ShippingForm() {
                         </div>
                     </div>
                 </div>
+{/* PARTE NUEVA */}
+               <div>
+    <label className="text-sm text-gray-700 mb-2 block">
+        ¿Qué tipo de servicio necesitas?
+    </label>
+    <div className="flex gap-4">
+        <label className="bg-white rounded-lg shadow-sm p-4 flex items-center gap-2 cursor-pointer w-full">
+            <input
+                type="radio"
+                name="serviceType"
+                value="flete"
+                checked={serviceType === "flete"}
+                onChange={() => setServiceType("flete")}
+                className="accent-emerald-400"
+            />
+            <span className="text-gray-700">Flete</span>
+        </label>
+        <label className="bg-white rounded-lg shadow-sm p-4 flex items-center gap-2 cursor-pointer w-full">
+            <input
+                type="radio"
+                name="serviceType"
+                value="mudanza"
+                checked={serviceType === "mudanza"}
+                onChange={() => setServiceType("mudanza")}
+                className="accent-emerald-400"
+            />
+            <span className="text-gray-700">Mudanza</span>
+        </label>
+    </div>
+</div>
 
+ {/* PARTE NUEVA */}
                 {/* Description */}
                 <div>
                     <label className="text-sm text-gray-700 mb-1 block">
-                        Descripcion del flete
+                        Descripcion de su {serviceType}
                     </label>
+      
+
                     <div className="bg-white rounded-lg shadow-sm p-4">
                         <Textarea
-                            placeholder="Describa su flete"
+                            placeholder={`Describa su ${serviceType}`}
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                             className="border-none shadow-none focus-visible:ring-0 p-0 h-auto min-h-[80px] resize-none"
@@ -165,33 +262,89 @@ export default function ShippingForm() {
                     </div>
                 </div>
 
-                {/* Vehicle Type */}
-                <div>
-                    <label className="text-sm text-gray-700 mb-1 block">
-                        Tipo de vehiculo
-                    </label>
-                    <div className="bg-white rounded-lg shadow-sm">
-                        <Select
-                            value={vehicleType}
-                            onValueChange={setVehicleType}
-                        >
-                            <SelectTrigger className="border-none shadow-none focus-visible:ring-0 h-auto py-4">
-                                <SelectValue placeholder="Seleccione tipo de vehiculo" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="camioneta">
-                                    Camioneta
-                                </SelectItem>
-                                <SelectItem value="camion">Camión</SelectItem>
-                                <SelectItem value="furgoneta">
-                                    Furgoneta
-                                </SelectItem>
-                                <SelectItem value="trailer">Tráiler</SelectItem>
-                                <SelectItem value="otro">Otro</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </div>
+{/* PARTE peso de carga */}
+<div>
+    <label className="text-sm text-gray-700 mb-2 block">
+        Peso de la carga
+    </label>
+
+    <div className="flex gap-4">
+        <label className="bg-white rounded-lg shadow-sm p-4 flex items-center gap-2 cursor-pointer w-full">
+            <input
+                type="radio"
+                name="pesoCarga"
+                value="Kg"
+                checked={pesoCarga === "Kg"}
+                onChange={() => setPesoCarga("Kg")}
+                className="accent-emerald-400"
+            />
+            <span className="text-gray-700">Kg</span>
+        </label>
+
+        <label className="bg-white rounded-lg shadow-sm p-4 flex items-center gap-2 cursor-pointer w-full">
+            <input
+                type="radio"
+                name="pesoCarga"
+                value="m³"
+                checked={pesoCarga === "m³"}
+                onChange={() => setPesoCarga("m³")}
+                className="accent-emerald-400"
+            />
+            <span className="text-gray-700">m³</span>
+        </label>
+    </div>
+
+    {pesoCarga === "Kg" && (
+        <div className="mt-4">
+            <label className="text-sm text-gray-700 mb-1 block">
+                Peso de la carga (kg)
+            </label>
+            <div className="bg-white rounded-lg shadow-sm p-4">
+                <Input
+                    placeholder="Ej: 200"
+                    value={weight}
+                    onChange={(e) => setWeight(e.target.value)}
+                    className="border-none shadow-none focus-visible:ring-0 p-0 h-auto"
+                />
+            </div>
+        </div>
+    )}
+</div>
+
+{/* PARTE peso de carga */}
+
+              {/* Vehicle Type */}
+<div>
+    <label className="text-sm text-gray-700 mb-1 block">
+        Tipo de vehiculo {vehicleTypes.length === 0 && "(Cargando...)"}
+    </label>
+    <div className="bg-white rounded-lg shadow-sm">
+        <Select
+            value={vehicleType}
+            onValueChange={setVehicleType}
+        >
+            <SelectTrigger className="border-none shadow-none focus-visible:ring-0 h-auto py-4">
+                <SelectValue placeholder="Seleccione tipo de vehiculo" />
+            </SelectTrigger>
+            <SelectContent>
+                {vehicleTypes.length > 0 ? (
+                    vehicleTypes.map((vehicle) => (
+                        <SelectItem key={vehicle.id} value={vehicle.id}>
+                            {vehicle.name} ({vehicle.load_capacity_kg} kg)
+                        </SelectItem>
+                    ))
+                ) : (
+                    // Fallback options while loading
+                    <>
+                        <SelectItem value="loading" disabled>
+                            Cargando tipos de vehículos...
+                        </SelectItem>
+                    </>
+                )}
+            </SelectContent>
+        </Select>
+    </div>
+</div>
 
                 {/* Image Upload */}
                 <div>
@@ -228,6 +381,13 @@ export default function ShippingForm() {
                     <label className="text-sm text-gray-700 mb-1 block">
                         Ofrece tu tarifa
                     </label>
+
+{/* PARTE precio sugerido */}
+                    <div className="text-sm text-emerald-600 font-medium mb-2">
+        El precio sugerido es: L. {calculateSuggestedPrice().toFixed(2)}
+    </div>
+{/* PARTE precio sugerido */}
+
                     <div className="bg-white rounded-lg shadow-sm p-4">
                         <Input
                             placeholder="Ingrese su tarifa"
