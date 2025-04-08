@@ -1,5 +1,5 @@
-import { supabase } from '@/lib/supabase/supabaseClient';
-/** 
+/** import { supabase } from '@/lib/supabase/supabaseClient';
+
 export async function uploadSelfie(file: File, userId: string) {
   const filePath = `${userId}/selfie.jpg`;
 
