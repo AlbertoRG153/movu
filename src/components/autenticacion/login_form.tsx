@@ -47,7 +47,7 @@ export function LoginForm({
                     );
                 }
 
-                router.push("/main_view");
+                router.push("/customer/main_view");
             } else {
                 setError(
                     "Error en la autenticación. Verifique sus credenciales."
@@ -161,6 +161,7 @@ export function LoginForm({
                                     Acceder
                                 </Button>
                             </div>
+                            
 
                             <div className="mt-6 text-center text-sm text-gray-500">
                                 ¿Nuevo usuario?{" "}
