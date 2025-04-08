@@ -1,4 +1,4 @@
-import { RegisterUserConductor } from "@/components/autenticacion/register_user_conductor";
+import { RegisterUserConductor } from "@/components/autenticacion/register_user_carrier";
 
 const page = () => {
     return (
