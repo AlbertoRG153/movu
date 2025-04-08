@@ -164,19 +164,13 @@ export function LoginConductor({
                                     href="/register_conductor"
                                     className="text-emerald-500 hover:text-emerald-600 font-medium"
                                 >
-                                    Crear usuario
+                                    Crear Conductor
                                 </a>
                             </div>
                             <br />
 
                             <Link href="/login">
-                                <Button
-                                    type="submit"
-                                    style={{ backgroundColor: "#2DF1A9" }}
-                                    className="w-full py-6 bg-emerald-400 hover:bg-emerald-500 text-white"
-                                >
-                                    Acceder Modo Cliente
-                                </Button>
+                                
                             </Link>
                         </form>
                     </CardContent>
