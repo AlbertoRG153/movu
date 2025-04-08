@@ -4,6 +4,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Car, History } from "lucide-react";
 
 const CarrierHome = () => {
@@ -13,8 +14,16 @@ const CarrierHome = () => {
 
   return (
     <div className="min-h-screen bg-[#0a2540] text-white flex flex-col items-center justify-center px-4 py-10">
-      <h1 className="text-3xl font-bold mb-4">¡Bienvenido a Movu, {user?.username || "Conductor"}! </h1>
-      <p className="text-sm text-gray-300 mb-6">Gestiona tus viajes y perfil desde esta vista.</p>
+        <Image
+            src="/white.png"
+                alt="Logo"
+                width={180}
+                height={180}
+                layout="fixed"
+                        />
+      <h1 className="text-3xl font-bold mb-4">¡Bienvenido , {user?.username || "Conductor"}! </h1>
+
+      <p className="text-sm text-gray-300 mb-6">Gestiona tus viajes y perfil .</p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-xl">
         {/* Botón de Iniciar Viaje */}
