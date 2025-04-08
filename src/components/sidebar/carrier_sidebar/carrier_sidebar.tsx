@@ -20,7 +20,7 @@ interface SidebarProps {
     onClose: () => void;
 }
 
-export function Sidebar({ isOpen }: SidebarProps) {
+export function CarrierSidebar({ isOpen }: SidebarProps) {
     const [activeItem, setActiveItem] = useState("Ciudad");
     const [rating] = useState(0);
 
@@ -62,7 +62,7 @@ export function Sidebar({ isOpen }: SidebarProps) {
                         <User size={18} />
                     </div>
                     <div>
-                        <p className="font-medium">Usuario1</p>
+                        <p className="font-medium">Pedro Padilla</p>
                         <div className="flex items-center">
                             {[...Array(5)].map((_, i) => (
                                 <Star
@@ -119,7 +119,7 @@ export function Sidebar({ isOpen }: SidebarProps) {
             {/* Driver Mode Button */}
             <div className="p-4 bg-[#0a1f26]">
                 <button className="w-full bg-[#16d6a1] text-[#0d2a33] font-medium py-3 rounded-md hover:bg-[#14c091] transition-colors">
-                    Modo usuario
+                    Modo conductor
                 </button>
             </div>
         </div>
