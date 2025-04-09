@@ -9,13 +9,7 @@ export function InformationCarrier() {
     setAccepted(true);
     alert('Archivos enviados correctamente');
   };
-  useEffect(() => {
-    const dni = localStorage.getItem("dni");
-    if (dni) {
-      console.log("DNI del conductor:", dni);
-      // Puedes usarlo para hacer una consulta con Supabase, por ejemplo.
-    }
-  }, []);  
+  
 
   return (
     <div className="min-h-screen bg-[#0D3A45] flex flex-col items-center justify-between py-10 text-white relative">
@@ -24,15 +18,7 @@ export function InformationCarrier() {
     <h1 className="text-xl font-semibold mb-6">Verificación</h1>
 
     <form onSubmit={handleSubmit} className="w-full flex flex-col items-center gap-4">
-      <Link href="/carrier_register/selfie" className="w-full">
-        <button
-          type="button"
-          className="w-full py-6 bg-white text-black rounded-full hover:bg-gray-200"
-        >
-          Selfie
-        </button>
-      </Link>
-
+      
       <Link href="/carrier_register/driver_license" className="w-full">
         <button
           type="button"

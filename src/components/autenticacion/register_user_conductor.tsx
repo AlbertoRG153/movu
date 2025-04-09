@@ -91,17 +91,24 @@ export function RegisterUserConductor({
                 password: hashedPassword
             };
         
-            const { error } = await supabase
-                .from("person")
-                .insert([secureFormData]);
-        
-            if (error) {
-                throw error;
-            }
-        
-            alert("Conductor registrado con éxito");
-            localStorage.setItem("dni", formData.dni);
-            router.push("/carrier_register/information"); 
+            const { data: insertedPerson, error } = await supabase
+    .from("person")
+    .insert([secureFormData])
+    .select("id") // Pedimos que retorne el ID
+
+if (error) {
+    throw error;
+}
+
+const personId = insertedPerson?.[0]?.id;
+
+if (!personId) {
+    throw new Error("No se pudo obtener el ID del nuevo usuario");
+}
+
+localStorage.setItem("person_id", personId); // Guardamos el ID, no el DNI
+alert("Conductor registrado con exito");
+router.push("/carrier_register/information"); 
         
             setFormData({
                 first_name: "",

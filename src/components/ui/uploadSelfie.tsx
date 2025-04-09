@@ -1,7 +1,10 @@
-/** import { supabase } from '@/lib/supabase/supabaseClient';
+ import { supabase } from '@/lib/supabase/supabaseClient';
 
 export async function uploadSelfie(file: File, userId: string) {
-  const filePath = `${userId}/selfie.jpg`;
+  const fileExt = file.name.split('.').pop();
+const filePath = `${userId}/selfie.${fileExt}`;
+console.log(filePath)
+
 
   const { data, error } = await supabase.storage
     .from("carriers")
@@ -20,4 +23,4 @@ export async function uploadSelfie(file: File, userId: string) {
     .getPublicUrl(filePath);
 
   return publicUrlData?.publicUrl || null;
-}  */
+} 
