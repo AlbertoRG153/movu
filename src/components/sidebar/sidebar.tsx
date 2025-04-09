@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation"; // Import the router
+import { supabase } from "@/lib/supabase/supabaseClient";
 import {
     User,
     MapPin,
@@ -20,9 +22,34 @@ interface SidebarProps {
     onClose: () => void;
 }
 
-export function Sidebar({ isOpen }: SidebarProps) {
+export function Sidebar({ isOpen, onClose }: SidebarProps) {
     const [activeItem, setActiveItem] = useState("Ciudad");
     const [rating] = useState(0);
+    const router = useRouter(); // Initialize the router
+
+    const handleLogout = async () => {
+        try {
+            // Cierre de sesión con Supabase
+            const { error } = await supabase.auth.signOut();
+            
+            if (error) {
+                throw error;
+            }
+            
+            // Cierra el sidebar
+            onClose();
+            
+            // Redirecciona al usuario a la página de login
+            router.push('/login');
+            
+            // Opcional: refresca la página para asegurar que se borren todos los estados
+            // router.refresh(); // Commented out as it might cause issues in some Next.js versions
+            
+        } catch (error) {
+            console.error("Error durante el cierre de sesión:", error);
+            // Podrías implementar una notificación de error aquí
+        }
+    };
 
     const menuItems = [
         {
@@ -105,11 +132,8 @@ export function Sidebar({ isOpen }: SidebarProps) {
             {/* Logout Button */}
             <div className="p-4 border-t border-[#1a3b45]">
                 <button
-                    className="flex items-center gap-3 w-full justify-center py-3"
-                    onClick={() => {
-                        // Handle logout logic here
-                        console.log("Logging out...");
-                    }}
+                    className="flex items-center gap-3 w-full justify-center py-3 hover:bg-[#1a3b45] transition-colors rounded-md"
+                    onClick={handleLogout}
                 >
                     <span>Cerrar Sesión</span>
                     <LogOut size={18} />
