@@ -56,7 +56,6 @@ export default function DriverLicenseAndSelfiePage() {
         return;
       }
       
-      const personId = parseInt(rawPersonId, 10);
       // Subir selfie
       const selfieUrl = await uploadSelfie(selfieFile, rawPersonId);
 
