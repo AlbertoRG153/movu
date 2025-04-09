@@ -1,12 +1,12 @@
- import { supabase } from '@/lib/supabase/supabaseClient';
+import { supabase } from '@/lib/supabase/supabaseClient';
 
 export async function uploadSelfie(file: File, userId: string) {
   const fileExt = file.name.split('.').pop();
-const filePath = `${userId}/selfie.${fileExt}`;
-console.log(filePath)
+  const filePath = `${userId}/selfie.${fileExt}`;
+  console.log(filePath)
 
 
-  const { data, error }: { data: any | null; error: any } = await supabase.storage
+  const { data, error } = await supabase.storage
     .from("carriers")
     .upload(filePath, file, {
       cacheControl: "3600",
@@ -22,5 +22,6 @@ console.log(filePath)
     .from("carriers")
     .getPublicUrl(filePath);
 
+    console.log("Imagen subida:", data);
   return publicUrlData?.publicUrl || null;
 } 

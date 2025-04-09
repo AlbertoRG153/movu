@@ -8,7 +8,7 @@ import { uploadSelfie } from "@/components/ui/uploadSelfie";
 
 export default function DriverLicenseAndSelfiePage() {
   const selfieInputRef = useRef<HTMLInputElement>(null);
-  const licenseInputRef = useRef<HTMLInputElement>(null);
+ // const licenseInputRef = useRef<HTMLInputElement>(null);
 
   const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
   const [selfieFile, setSelfieFile] = useState<File | null>(null);
@@ -20,7 +20,7 @@ export default function DriverLicenseAndSelfiePage() {
   const [licenseExpiration, setLicenseExpiration] = useState('');
 
   const handleSelfieClick = () => selfieInputRef.current?.click();
-  const handleLicenseClick = () => licenseInputRef.current?.click();
+  //const handleLicenseClick = () => licenseInputRef.current?.click();
 
   const handleSelfieChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
