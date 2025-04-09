@@ -6,7 +6,7 @@ const filePath = `${userId}/selfie.${fileExt}`;
 console.log(filePath)
 
 
-  const { data, error } = await supabase.storage
+  const { data, error }: { data: any | null; error: any } = await supabase.storage
     .from("carriers")
     .upload(filePath, file, {
       cacheControl: "3600",

@@ -13,8 +13,8 @@ export default function DriverLicenseAndSelfiePage() {
   const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
   const [selfieFile, setSelfieFile] = useState<File | null>(null);
 
-  const [licensePreview, setLicensePreview] = useState<string | null>(null);
-  const [licenseFile, setLicenseFile] = useState<File | null>(null);
+  //const [licensePreview, setLicensePreview] = useState<string | null>(null);
+  //const [licenseFile, setLicenseFile] = useState<File | null>(null);
 
   const [licenseNumber, setLicenseNumber] = useState('');
   const [licenseExpiration, setLicenseExpiration] = useState('');
@@ -32,7 +32,7 @@ export default function DriverLicenseAndSelfiePage() {
     }
   };
 
-  const handleLicenseChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+ /**const handleLicenseChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setLicenseFile(file);
@@ -40,7 +40,7 @@ export default function DriverLicenseAndSelfiePage() {
       reader.onloadend = () => setLicensePreview(reader.result as string);
       reader.readAsDataURL(file);
     }
-  };
+  }; */ 
 
   const handleSubmit = async () => {
     if (!selfieFile || !licenseNumber || !licenseExpiration) {
@@ -159,29 +159,7 @@ export default function DriverLicenseAndSelfiePage() {
           className="w-full mb-4 px-4 py-2 border rounded"
         />
 
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleLicenseChange}
-          ref={licenseInputRef}
-          className="hidden"
-        />
-        <button
-          onClick={handleLicenseClick}
-          className="border border-emerald-500 text-emerald-500 px-4 py-1 rounded-full mb-4"
-        >
-          Subir foto de la licencia
-        </button>
 
-        {licensePreview && (
-          <Image
-            src={licensePreview}
-            alt="Licencia"
-            width={192}
-            height={120}
-            className="rounded"
-          />
-        )}
       </div>
 
       {/* Boton principal */}
