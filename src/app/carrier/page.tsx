@@ -98,7 +98,7 @@ const CarrierHome = () => {
       {/* Descripción */}
       <p className="text-sm text-gray-300 mb-8 text-center max-w-md">
         Explora tu panel de conductor y mejora tu experiencia en carretera.
-        Todo lo que necesitás en un solo lugar: <strong>Movu</strong>.
+        Todo lo que necesitás en un solo lugares.
       </p>
 
       {/* Tarjetas de conductores */}
