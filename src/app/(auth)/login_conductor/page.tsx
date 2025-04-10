@@ -1,4 +1,4 @@
-import { LoginConductor } from "@/components/autenticacion/login_conductor";
+import { LoginConductor } from "@/components/autenticacion/login_carrier";
 
 const Page = () => {
   return (

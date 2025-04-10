@@ -1,7 +1,15 @@
-const Information = () => {
-    return (
-      <div>Information</div>
-    )
-  }
+"use client";
   
-  export default Information
+  import React from "react";
+  import { InformationCarrier } from "@/components/carrier_register/information_carrier";
+  
+  const InformationCarrierPage = () => {
+      return (
+          <>
+              <InformationCarrier />
+          </>
+      );
+  };
+  
+  export default InformationCarrierPage;
+  

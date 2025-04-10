@@ -148,7 +148,6 @@ export function LoginConductor({
                                         ¿Olvidó su contraseña?
                                     </a>
                                 </div>
-
                                 <Button
                                     type="submit"
                                     style={{ backgroundColor: "#092A39" }}
