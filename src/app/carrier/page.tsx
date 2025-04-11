@@ -30,7 +30,7 @@ const CarrierHome = () => {
   }, []);
 
   // Lista de conductores a mostrar en tarjetas
-  const [conductores, setConductores] = useState<Conductor[]>([
+  const [conductores] = useState<Conductor[]>([
     {
       id: "1",
       nombre: "Carlos Medina",
