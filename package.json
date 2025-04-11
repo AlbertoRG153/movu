@@ -9,12 +9,18 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@clerk/nextjs": "^6.14.1",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@mui/x-date-pickers": "^7.27.3",
+    "@radix-ui/react-dialog": "^1.1.6",
     "@radix-ui/react-label": "^2.1.2",
+    "@radix-ui/react-popover": "^1.1.6",
+    "@radix-ui/react-select": "^2.1.6",
     "@radix-ui/react-slot": "^1.1.2",
-    "axios": "^1.8.3",
+    "@supabase/supabase-js": "^2.49.3",
+    "axios": "^1.8.4",
+    "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
@@ -25,19 +31,20 @@
     "next": "15.2.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-router": "^7.4.1",
     "tailwind-merge": "^3.0.2",
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
+    "@eslint/eslintrc": "^3.3.1",
+    "@tailwindcss/postcss": "^4.0.16",
+    "@types/node": "^20.17.27",
+    "@types/react": "^19.0.12",
+    "@types/react-dom": "^19.0.4",
+    "eslint": "^9.23.0",
     "eslint-config-next": "15.2.2",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+    "tailwindcss": "^4.0.16",
+    "typescript": "^5.8.2"
   },
   "packageManager": "pnpm@9.12.1+sha512.e5a7e52a4183a02d5931057f7a0dbff9d5e9ce3161e33fa68ae392125b79282a8a8a470a51dfc8a0ed86221442eb2fb57019b0990ed24fab519bf0e1bc5ccfc4"
 }

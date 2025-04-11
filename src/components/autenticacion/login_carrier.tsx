@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { Eye, EyeOff, FileLock, User2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -10,13 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { loginUser } from "@/lib/supabase/supabaseFuntions";
+import Link from "next/link";
 
-/*interface FormData {
-  email: string;
-  password: string;
-}*/
-
-export function LoginForm({
+export function LoginConductor({
     className,
     ...props
 }: React.ComponentPropsWithoutRef<"div">) {
@@ -47,7 +42,7 @@ export function LoginForm({
                     );
                 }
 
-                router.push("/customer/main_view");
+                router.push("/main_view");
             } else {
                 setError(
                     "Error en la autenticación. Verifique sus credenciales."
@@ -73,7 +68,7 @@ export function LoginForm({
                 <Card className="border-none shadow-sm">
                     <div className="flex justify-center">
                         <Image
-                            src="/image.svg"
+                            src="/Logo_movu_solido_2.png"
                             alt="Logo"
                             width={180}
                             height={180}
@@ -82,7 +77,7 @@ export function LoginForm({
                     </div>
                     <CardHeader className="pb-4">
                         <CardTitle className="text-2xl text-center text-[#0a2540]">
-                            Inicio de Sesión
+                            Inicio de Sesión Modo Conductor
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -153,42 +148,33 @@ export function LoginForm({
                                         ¿Olvidó su contraseña?
                                     </a>
                                 </div>
-
                                 <Button
                                     type="submit"
+                                    style={{ backgroundColor: "#092A39" }}
                                     className="w-full py-6 bg-emerald-400 hover:bg-emerald-500 text-white"
                                 >
                                     Acceder
                                 </Button>
                             </div>
-                            
 
                             <div className="mt-6 text-center text-sm text-gray-500">
                                 ¿Nuevo usuario?{" "}
                                 <a
-                                    href="/register"
+                                    href="/register_conductor"
                                     className="text-emerald-500 hover:text-emerald-600 font-medium"
                                 >
                                     Crear usuario
                                 </a>
                             </div>
                             <br />
-                            <br />
 
-                            <div className="text-center">
-                                <a className="text-sm text-gray-500 hover:text-gray-700">
-                                    ¿Te gustaria trabajar con nosotros?
-                                </a>
-                            </div>
-                            <br />
-
-                            <Link href="/login_conductor">
+                            <Link href="/login">
                                 <Button
                                     type="submit"
-                                    style={{ backgroundColor: "#092A39" }}
+                                    style={{ backgroundColor: "#2DF1A9" }}
                                     className="w-full py-6 bg-emerald-400 hover:bg-emerald-500 text-white"
                                 >
-                                    Acceder Modo Conductor
+                                    Acceder Modo Cliente
                                 </Button>
                             </Link>
                         </form>
