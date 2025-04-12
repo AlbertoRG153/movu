@@ -98,7 +98,7 @@ const CarrierHome = () => {
       {/* Descripción */}
       <p className="text-sm text-gray-300 mb-8 text-center max-w-md">
         Explora tu panel de conductor y mejora tu experiencia en carretera.
-        Todo lo que necesitás en un solo lugares.
+        Todo lo que necesitás en un solo lugar.
       </p>
 
       {/* Tarjetas de conductores */}
@@ -154,7 +154,7 @@ const CarrierHome = () => {
         <div className="pt-4">
           <Button
             onClick={handleCancelar}
-            className="w-full bg-red-600 hover:bg-red-700"
+            className="w-full bg-green-700 hover:bg-emerald-700"
           >
             Cancelar
           </Button>
