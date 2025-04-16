@@ -36,7 +36,7 @@ export default function ConfiguracionesPage() {
       {/* Main content */}
       <main className="flex-1 p-4 flex flex-col space-y-4">
         {/* Cambiar número de teléfono */}
-        <Link href="#" className="flex items-center justify-between py-3 border-b border-[#1a3a4a]">
+        <Link href="configuration/phone" className="flex items-center justify-between py-3 border-b border-[#1a3a4a]">
           <div>
             <p className="text-white">Cambiar el número de teléfono</p>
             <p className="text-sm text-gray-400">{phoneNumber}</p>
@@ -45,7 +45,7 @@ export default function ConfiguracionesPage() {
         </Link>
 
         {/* Idioma */}
-        <Link href="#" className="flex items-center justify-between py-3 border-b border-[#1a3a4a]">
+        <Link href="configuration/idioma" className="flex items-center justify-between py-3 border-b border-[#1a3a4a]">
           <div>
             <p className="text-white">Idioma</p>
             <p className="text-sm text-gray-400">{language}</p>
@@ -54,7 +54,7 @@ export default function ConfiguracionesPage() {
         </Link>
 
         {/* Formato de fecha y unidades de distancia */}
-        <Link href="#" className="flex items-center justify-between py-3 border-b border-[#1a3a4a]">
+        <Link href="/configuration/format" className="flex items-center justify-between py-3 border-b border-[#1a3a4a]">
           <div>
             <p className="text-white">Formato de fecha y unidades de distancia</p>
           </div>
@@ -62,7 +62,7 @@ export default function ConfiguracionesPage() {
         </Link>
 
         {/* Acerca de la aplicación */}
-        <Link href="#" className="flex items-center justify-between py-3 border-b border-[#1a3a4a]">
+        <Link href="/configuration/about" className="flex items-center justify-between py-3 border-b border-[#1a3a4a]">
           <div>
             <p className="text-white">Acerca de la aplicación</p>
           </div>
