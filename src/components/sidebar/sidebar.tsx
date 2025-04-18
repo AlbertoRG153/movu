@@ -62,7 +62,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             href: "/history",
             icon: <FileText size={20} />,
         },
-        { name: "Entregas", href: "/delivery", icon: <Package size={20} /> },
+        { name: "Entregas", href: "/configuration/deliveries", icon: <Package size={20} /> },
         {
             name: "Soporte Técnico",
             href: "/tsupport",
