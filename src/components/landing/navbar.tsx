@@ -168,17 +168,13 @@ export function NavBar() {
                 isScrolled ? "bg-white/90 backdrop-blur-sm" : "bg-white"
             }`}
         >
-            <div className="container mx-auto px-4 py-4">
+            <div className=" mx-auto px-3 py-3 ">
                 <div className="flex items-center justify-between">
                     {/* Logo */}
-                    <Link href="/" className="">
+                    <Link href="/" >
                         <Logo />
                     </Link>
-                    {/*<Link href="/login" className="md:hidden">
-                     <Button className="bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm">
-                     Iniciar Sesión
-                   </Button>
-                   </Link>*/}
+                    
                   
                     {/* Botón de menú móvil */}
                     <button
@@ -191,7 +187,7 @@ export function NavBar() {
 
                     {/* Navegación de escritorio */}
                     <nav className="hidden md:flex items-center space-x-6">
-                        <div className="flex items-center space-x-1">
+                        <div className="flex items-center  space-x-1">
                         
 
                             {navLinks.map((link) => (
@@ -201,7 +197,7 @@ export function NavBar() {
                                     onClick={(e) =>
                                         handleLinkClick(link.href, e)
                                     }
-                                    className={`px-3 py-2 rounded-lg transition-all duration-200 relative ${
+                                    className={` md:px-2 px-3 py-2 rounded-lg transition-all duration-200 relative ${
                                         activeSection === link.href
                                             ? "text-emerald-600 font-medium"
                                             : "text-gray-700 hover:text-emerald-500"
@@ -215,11 +211,7 @@ export function NavBar() {
                             ))}
                         </div>
 
-                        <Link href="/login">
-                            <Button className="bg-emerald-400 hover:bg-emerald-500 text-950">
-                                Iniciar Sesion
-                            </Button>
-                        </Link>
+                        
 
                         {/* Botón de descarga */}
                         <Button className="bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg ml-2 flex items-center gap-2 shadow-sm transition-all duration-200 hover:shadow-md">

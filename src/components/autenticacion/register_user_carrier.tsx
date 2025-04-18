@@ -27,7 +27,7 @@ import { supabase } from "@/lib/supabase/supabaseClient";
 import { useRouter } from "next/navigation";
 import { Alert, Snackbar } from "@mui/material";
 
-export function RegisterUserForm({
+export function RegisterUserConductor({
     className,
     ...props
 }: React.ComponentPropsWithoutRef<"div">) {
@@ -184,13 +184,21 @@ export function RegisterUserForm({
                 second_surname: formData.second_surname || null,
             };
     
-            const { error } = await supabase.from("person").insert([secureFormData]);
-    
+            const { data: insertedPerson, error } = await supabase
+            .from("person")
+            .insert([secureFormData])
+            .select("id") // Pedimos que retorne el ID
+
             if (error) {
                 throw error;
             }
     
-    
+            const personId = insertedPerson?.[0]?.id;
+            if (!personId) {
+                throw new Error("No se pudo obtener el ID del nuevo usuario");
+            }
+            
+            localStorage.setItem("person_id", personId); // Guardamos el ID, no el DNI
             // Mostrar el Snackbar de éxito
             setAlertMessage("Usuario registrado con éxito");
             setAlertType("success");
@@ -214,7 +222,7 @@ export function RegisterUserForm({
     
             // Redirigir al login después de un registro exitoso
             setTimeout(() => {
-                router.push("/login");
+                router.push("/carrier_register/information"); 
             }, 2000);
     
         } catch (error: unknown) {
@@ -259,12 +267,12 @@ export function RegisterUserForm({
                 <CardHeader>
                     <div className="flex justify-center">
                         <Image
-                            src="/Logo_movu.png"
+                            src="/Logo_movu_solido_2.png"
                             alt="Logo"
                             width={125}
                             height={125}
                             layout="fixed"
-                            onClick={() => router.push("/login")}
+                            onClick={() => router.push("/login_conductor")}
                         />
                     </div>
 

@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Eye, EyeOff, FileLock, User2Icon } from "lucide-react";
+import { Eye, EyeOff, Lock, User2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -35,7 +35,6 @@ export function LoginForm({
             const user = await loginUser(email, password);
 
             if (user) {
-                console.log("Usuario autenticado:", user);
 
                 if (typeof window !== "undefined") {
                     localStorage.setItem(
@@ -73,7 +72,7 @@ export function LoginForm({
                 <Card className="border-none shadow-sm">
                     <div className="flex justify-center">
                         <Image
-                            src="/image.svg"
+                            src="/Logo_movu.png"
                             alt="Logo"
                             width={180}
                             height={180}
@@ -90,13 +89,13 @@ export function LoginForm({
                             <div className="flex flex-col gap-5">
                                 <div className="relative">
                                     <User2Icon
-                                        className="absolute left-3 top-3 text-gray-400"
+                                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
                                         size={18}
                                     />
                                     <Input
                                         id="email"
                                         type="email"
-                                        className="pl-10 py-6 border-gray-200"
+                                        className="pl-10 pr-10 py-3 h-12 border border-gray-200 rounded-md text-sm"
                                         placeholder="Correo electrónico"
                                         value={email}
                                         onChange={(e) =>
@@ -107,8 +106,8 @@ export function LoginForm({
                                 </div>
 
                                 <div className="relative">
-                                    <FileLock
-                                        className="absolute left-3 top-3 text-gray-400"
+                                    <Lock
+                                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
                                         size={18}
                                     />
                                     <Input
@@ -116,7 +115,7 @@ export function LoginForm({
                                         type={
                                             showPassword ? "text" : "password"
                                         }
-                                        className="pl-10 py-6 pr-10 border-gray-200"
+                                        className="pl-10 pr-10 py-3 h-12 border border-gray-200 rounded-md text-sm"
                                         placeholder="Contraseña"
                                         value={password}
                                         onChange={(e) =>
@@ -126,7 +125,7 @@ export function LoginForm({
                                     />
                                     <button
                                         type="button"
-                                        className="absolute right-3 top-3 text-gray-400"
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
                                         onClick={() =>
                                             setShowPassword(!showPassword)
                                         }
