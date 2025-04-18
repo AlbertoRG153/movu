@@ -42,6 +42,7 @@ export function LoginForm({
                         JSON.stringify({
                             email,
                             username: email.split("@")[0],
+                            userId: user.id,
                         })
                     );
                 }
