@@ -21,7 +21,7 @@ export default function TripRequestCard({
     onReject,
 }: TripRequestProps) {
     return (
-        <div className="bg-[#2d4a54] text-white rounded-lg p-4 shadow-md">
+        <div className="bg-[#092A39] text-white rounded-lg p-4 shadow-md">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <div className="bg-gray-200 rounded-full p-2">
@@ -56,7 +56,7 @@ export default function TripRequestCard({
                     </button>
                     <button
                         onClick={onAccept}
-                        className="px-4 py-1 bg-[#40e0d0] text-gray-800 rounded-full text-sm font-medium"
+                        className="px-4 py-1 bg-[#2DF1A9] text-gray-800 rounded-full text-sm font-medium"
                     >
                         Aceptar
                     </button>
