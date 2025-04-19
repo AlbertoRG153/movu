@@ -1,176 +1,202 @@
 'use client';
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import {supabase} from "@/lib/supabase/supabaseClient";
-import { uploadSelfie } from "@/components/ui/uploadSelfie";
 
 export default function DriverLicenseAndSelfiePage() {
+  const router = useRouter();
   const selfieInputRef = useRef<HTMLInputElement>(null);
- // const licenseInputRef = useRef<HTMLInputElement>(null);
 
   const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
-  const [selfieFile, setSelfieFile] = useState<File | null>(null);
-
-  //const [licensePreview, setLicensePreview] = useState<string | null>(null);
-  //const [licenseFile, setLicenseFile] = useState<File | null>(null);
-
   const [licenseNumber, setLicenseNumber] = useState('');
   const [licenseExpiration, setLicenseExpiration] = useState('');
 
-  const handleSelfieClick = () => selfieInputRef.current?.click();
-  //const handleLicenseClick = () => licenseInputRef.current?.click();
+  const isFormComplete = licenseNumber.trim() !== '' && licenseExpiration.trim() !== '' && selfiePreview !== null;
 
-  const handleSelfieChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Función para guardar en localStorage con expiración
+  const setLocalStorageWithExpiry = (key: string, value: string, hours: number) => {
+    const now = new Date();
+    const item = {
+      value: value,
+      expiry: now.getTime() + hours * 60 * 60 * 1000,
+    };
+    localStorage.setItem(key, JSON.stringify(item));
+  };
+
+  // Función para obtener de localStorage verificando expiración
+  const getLocalStorageWithExpiry = (key: string) => {
+    const itemStr = localStorage.getItem(key);
+    if (!itemStr) {
+      return null;
+    }
+    
+    try {
+      // Intenta parsear como JSON
+      const item = JSON.parse(itemStr);
+      
+      // Verifica si tiene la estructura esperada
+      if (item && item.value !== undefined && item.expiry !== undefined) {
+        const now = new Date();
+        
+        // Comparar la fecha de expiración con la fecha actual
+        if (now.getTime() > item.expiry) {
+          // Si ha expirado, eliminar del localStorage
+          localStorage.removeItem(key);
+          return null;
+        }
+        return item.value;
+      } else {
+        // Es JSON válido pero no tiene la estructura que necesitamos
+        // Podemos asumir que es un valor antiguo sin expiración
+        // Vamos a actualizarlo al nuevo formato
+        setLocalStorageWithExpiry(key, itemStr, 24);
+        return itemStr;
+      }
+    } catch  {
+      // Si falla el parseo de JSON, significa que es un string simple
+      // Usamos el valor directamente y lo actualizamos al nuevo formato
+      setLocalStorageWithExpiry(key, itemStr, 24);
+      return itemStr;
+    }
+  };
+  
+
+
+  useEffect(() => {
+    // Opcional: descomenta esta línea si quieres borrar todo y empezar de cero
+    // clearOldStorageFormat(); 
+    
+    try {
+      // Cargar datos con verificación de expiración
+      const savedLicense = getLocalStorageWithExpiry('licenseNumber');
+      const savedExpiration = getLocalStorageWithExpiry('licenseExpiration');
+      const savedSelfiePreview = getLocalStorageWithExpiry('selfiePreview');
+
+      if (savedLicense) setLicenseNumber(savedLicense);
+      if (savedExpiration) setLicenseExpiration(savedExpiration);
+      if (savedSelfiePreview) setSelfiePreview(savedSelfiePreview);
+    } catch (e) {
+      console.error("Error al cargar datos del localStorage:", e);
+    }
+  }, []);
+
+  const handleSelfieClick = () => selfieInputRef.current?.click();
+
+  const handleSelfieUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setSelfieFile(file);
       const reader = new FileReader();
-      reader.onloadend = () => setSelfiePreview(reader.result as string);
+      reader.onload = () => {
+        const base64 = reader.result as string;
+        setSelfiePreview(base64);
+        setLocalStorageWithExpiry('selfiePreview', base64, 24);
+      };
       reader.readAsDataURL(file);
     }
   };
 
- /**const handleLicenseChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setLicenseFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => setLicensePreview(reader.result as string);
-      reader.readAsDataURL(file);
-    }
-  }; */ 
-
-  const handleSubmit = async () => {
-    if (!selfieFile || !licenseNumber || !licenseExpiration) {
+  const handleSubmit = () => {
+    if (!isFormComplete) {
       alert('Por favor completa todos los campos.');
       return;
     }
-
-    try {
-      const rawPersonId = localStorage.getItem("person_id");
-
-      if (!rawPersonId) {
-        console.error("No hay person_id en localStorage");
-        return;
-      }
-      
-      // Subir selfie
-      const selfieUrl = await uploadSelfie(selfieFile, rawPersonId);
-
-      // Verificar si el carrier ya existe
-      const { data: existingCarrier, error: fetchError } = await supabase
-        .from('carrier')
-        .select('*')
-        .eq('id', rawPersonId)
-        .single();
-
-      if (fetchError && fetchError.code !== 'PGRST116') {
-        throw fetchError;
-      }
-
-      if (existingCarrier) {
-        // Actualizar si ya existe
-        const { error: updateError } = await supabase
-          .from('carrier')
-          .update({
-            license: licenseNumber,
-            id_person: rawPersonId,
-            license_expiration: licenseExpiration,
-            license_img: selfieUrl
-          })
-          .eq('id', rawPersonId);
-
-        if (updateError) throw updateError;
-      } else {
-        // Insertar si no existe
-        const { error: insertError } = await supabase
-          .from('carrier')
-          .insert({
-            id: rawPersonId,
-            id_person: rawPersonId,
-            license: licenseNumber,
-            license_expiration: licenseExpiration,
-            license_img: selfieUrl
-          });
-
-        if (insertError) throw insertError;
-      }
-
-      alert('Datos enviados correctamente.');
-    } catch (err) {
-      console.error(err);
-      alert('Hubo un error al subir los datos.');
-    }
+  
+    // Guardar en localStorage con expiración de 24 horas
+    setLocalStorageWithExpiry('licenseNumber', licenseNumber, 24);
+    setLocalStorageWithExpiry('licenseExpiration', licenseExpiration, 24);
+    setLocalStorageWithExpiry('selfiePreview', selfiePreview!, 24);
+    setLocalStorageWithExpiry('driverLicenseCompleted', 'true', 24);
+  
+    // Mostrar datos guardados en consola
+    console.log("✅ Datos guardados en localStorage con expiración de 24 horas:");
+    console.log("licenseNumber:", licenseNumber);
+    console.log("licenseExpiration:", licenseExpiration);
+    console.log("selfiePreview (base64):", selfiePreview?.slice(0, 50) + "..."); // Mostrar solo parte de la imagen
+    console.log("driverLicenseCompleted: true");
+  
+    router.push("/carrier_register/information");
   };
+  
 
   return (
-    <div className="min-h-screen bg-[#0D3A45] text-white flex flex-col items-center py-10 px-4">
-      <h1 className="text-xl font-semibold mt-20 mb-6">Registro del Conductor</h1>
-
-      {/* Seccion Selfie */}
-      <div className="bg-white text-black p-6 rounded-lg w-full max-w-md mb-6 flex flex-col items-center justify-center">
-        <div className="relative flex flex-col items-center">
-          <Image
-            src={selfiePreview || "/selfie.png"}
-            alt="Selfie"
-            width={192}
-            height={192}
-            className="rounded mb-4"
-          />
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleSelfieChange}
-            ref={selfieInputRef}
-            className="hidden"
-          />
-          <p className="text-sm text-gray-600 mt-2 max-w-md text-center">
-            Tómate una foto con tu licencia de conducir junto a tu rostro.
-            Asegúrate de que tu cara y la información del documento sean claramente visibles.
-          </p>
-          <button
-            onClick={handleSelfieClick}
-            className="border border-emerald-500 text-emerald-500 px-4 py-1 rounded-full mt-2"
-          >
-            Subir Selfie
-          </button>
-        </div>
+    <div className="bg-[#0D3A45] text-white flex flex-col items-center px-4 min-h-screen">
+      <div className="h-[10vh] w-full mt-5 text-center">
+        <h1 className="text-xl text-white font-semibold">Registro del Conductor</h1>
       </div>
 
-      {/* Seccion Licencia */}
-      <div className="bg-white text-black p-6 rounded-lg w-11/12 max-w-md mb-6 flex flex-col items-center justify-center">
+      {/* Selfie */}
+      <div className="bg-white text-black p-6 rounded-lg w-11/12 max-w-md mb-6 flex flex-col items-center">
+        <Image
+          src={selfiePreview || "/selfie.png"}
+          alt="Selfie"
+          width={192}
+          height={192}
+          className="rounded mb-4 object-cover"
+        />
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleSelfieUpload}
+          ref={selfieInputRef}
+          className="hidden"
+        />
+        <p className="text-sm text-gray-600 mt-2 text-center">
+          Tómate una foto con tu licencia de conducir junto a tu rostro. Asegúrate de que tu cara y la información del documento sean claramente visibles.
+        </p>
+        <button
+          onClick={handleSelfieClick}
+          className="border border-emerald-500 text-emerald-500 px-4 py-2 rounded-full mt-4"
+        >
+          Subir Selfie
+        </button>
+      </div>
+
+      {/* Número de Licencia */}
+      <div className="bg-white text-black p-6 rounded-lg w-11/12 max-w-md mb-6">
+        <p className="text-sm text-justify">Número de licencia de conducir.</p>
         <input
           type="text"
           value={licenseNumber}
-          onChange={(e) => setLicenseNumber(e.target.value)}
-          placeholder="Numero de licencia de conducir"
-          className="w-full mb-4 px-4 py-2 border rounded"
+          onChange={(e) => {
+            const newValue = e.target.value;
+            setLicenseNumber(newValue);
+            setLocalStorageWithExpiry('licenseNumber', newValue, 24);
+          }}
+          placeholder="Número de licencia"
+          className="w-full mt-4 px-4 py-2 border rounded text-sm"
         />
-        <p className="text-sm text-gray-600 mt-2">
-          Por favor, ingresa la fecha de expiracion de tu documento.
-        </p>
+      </div>
+
+      {/* Fecha de Expiración */}
+      <div className="bg-white text-black p-6 rounded-lg w-11/12 max-w-md mb-6">
+        <p className="text-sm text-justify">Fecha de expiración de tu licencia.</p>
         <input
           type="date"
           value={licenseExpiration}
-          onChange={(e) => setLicenseExpiration(e.target.value)}
-          className="w-full mb-4 px-4 py-2 border rounded"
+          onChange={(e) => {
+            const newValue = e.target.value;
+            setLicenseExpiration(newValue);
+            setLocalStorageWithExpiry('licenseExpiration', newValue, 24);
+          }}
+          className="w-full mt-4 px-4 py-2 border rounded text-sm"
         />
-
-
       </div>
 
-      {/* Boton principal */}
+      {/* Botón Aceptar */}
       <button
         onClick={handleSubmit}
-        className="bg-[#21E6C1] text-black px-6 py-2 rounded-full mt-2"
+        disabled={!isFormComplete}
+        className={`px-8 py-3 rounded-full mt-2 ${
+          isFormComplete ? "bg-[#21E6C1] text-black" : "bg-gray-400 text-white cursor-not-allowed"
+        }`}
       >
         Aceptar
       </button>
 
       <Link href="/carrier_register/information">
-        <button className="mt-8 text-sm underline">Regresar</button>
+        <button className="mt-8 mb-8 text-sm underline">Regresar</button>
       </Link>
     </div>
   );
