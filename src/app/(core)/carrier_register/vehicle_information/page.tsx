@@ -1,208 +1,337 @@
-'use client';
+"use client";
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase/supabaseClient";
-import { uploadVehicleImage } from "@/components/ui/uploadVehicleImage";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 type VehicleType = {
-  id: string;
-  name: string;
-  load_capacity_kg: number;
+    id: string;
+    name: string;
+    load_capacity_kg: number;
+};
+
+// Función para guardar en localStorage con expiración
+const setLocalStorageWithExpiry = (
+    key: string,
+    value: string,
+    hours: number
+) => {
+    if (typeof window !== "undefined") {
+        const now = new Date();
+        const item = {
+            value: value,
+            expiry: now.getTime() + hours * 60 * 60 * 1000,
+        };
+        localStorage.setItem(key, JSON.stringify(item));
+    }
+};
+
+// Función para obtener de localStorage verificando expiración
+const getLocalStorageWithExpiry = (key: string) => {
+    if (typeof window !== "undefined") {
+        const itemStr = localStorage.getItem(key);
+        if (!itemStr) {
+            return null;
+        }
+
+        try {
+            const item = JSON.parse(itemStr);
+            // Verifica si tiene la estructura esperada (con campo expiry)
+            if (item && item.expiry) {
+                const now = new Date();
+
+                // Comprobar si ya ha expirado
+                if (now.getTime() > item.expiry) {
+                    // Si ha expirado, eliminar del localStorage
+                    localStorage.removeItem(key);
+                    return null;
+                }
+                return item.value;
+            } else {
+                // Si no tiene el formato esperado pero hay datos, devolver el valor directamente
+                // Esto maneja valores antiguos que no tienen formato JSON con expiry
+                return itemStr;
+            }
+        } catch {
+            // Si hay un error al analizar JSON, puede ser un valor antiguo no-JSON
+            console.log(
+                `Error parsing JSON for key ${key}, returning raw value`
+            );
+            return itemStr;
+        }
+    }
+    return null;
 };
 
 export default function VehiculoPage() {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [plateNumber, setPlateNumber] = useState('');
-  const [brand, setBrand] = useState('');
-  const [model, setModel] = useState('');
-  const [color, setColor] = useState('');
-  const [selectedVehicleTypeId, setSelectedVehicleTypeId] = useState('');
-  const [vehicleTypes, setVehicleTypes] = useState<VehicleType[]>([]);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const router = useRouter();
 
-  const handleAddClick = () => {
-    fileInputRef.current?.click();
-  };
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [vehicleTypes, setVehicleTypes] = useState<VehicleType[]>([]);
+    const [selectedVehicleType, setSelectedVehicleType] = useState("");
+    const [plateNumber, setPlateNumber] = useState("");
+    const [brand, setBrand] = useState("");
+    const [model, setModel] = useState("");
+    const [color, setColor] = useState("");
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setImageFile(file);
-    }
-  };
+    const isFormComplete =
+        selectedVehicleType &&
+        plateNumber &&
+        brand &&
+        model &&
+        color &&
+        imagePreview;
 
-  const handleSubmit = async () => {
-    if (!imageFile || !plateNumber || !brand || !model || !color || !selectedVehicleTypeId) {
-      alert('Por favor completa todos los campos.');
-      return;
-    }
-  
-    try {
-      const rawPersonId = localStorage.getItem("person_id");
-      if (!rawPersonId) {
-        alert("No se encontró el ID de persona en localStorage.");
-        return;
-      }
-  
-      //  Subir imagen
-      const imageUrl = await uploadVehicleImage(imageFile, rawPersonId);
-      if (!imageUrl) throw new Error("Error subiendo imagen del vehiculo");
-  
-      // Crear nuevo vehículo
-      const { data: newVehicle, error: vehicleError } = await supabase
-        .from("vehicle")
-        .insert({
-          plate_number: plateNumber,
-          brand,
-          model,
-          color,
-          id_vehicle_type: selectedVehicleTypeId,
-          vehicle_img: imageUrl,
-        })
-        .select()
-        .single();
-  
-      if (vehicleError || !newVehicle) throw vehicleError;
-  
-      // Verificar si existe un carrier con ese id_person
-      const { data: existingCarrier, error: carrierCheckError } = await supabase
-        .from("carrier")
-        .select("id")
-        .eq("id", rawPersonId)
-        .single();
-  
-      if (carrierCheckError && carrierCheckError.code !== "PGRST116") {
-        throw carrierCheckError;
-      }
-  
-      if (existingCarrier) {
-        // Si existe, actualizar id_vehicle
-        const { error: updateCarrierError } = await supabase
-          .from("carrier")
-          .update({ id_vehicle: newVehicle.id }) // Aquí usamos newVehicle.id
-          .eq("id", rawPersonId);
-  
-        if (updateCarrierError) throw updateCarrierError;
-      } else {
-        // Si no existe, crear nuevo carrier
-        const { error: insertCarrierError } = await supabase
-          .from("carrier")
-          .insert({
-            id: rawPersonId,
-            id_vehicle: newVehicle.id, 
-          });
-  
-        if (insertCarrierError) throw insertCarrierError;
-      }
-  
-      alert("Vehículo y datos del transportista registrados exitosamente.");
-    } catch (err) {
-      console.error(err);
-      alert("Ocurrió un error al guardar la información.");
-    }
-  };
-
-  useEffect(() => {
-    const fetchVehicleTypes = async () => {
-      const { data, error } = await supabase.from("vehicle_type").select("*");
-      if (error) {
-        console.error("Error al obtener tipos de vehículo:", error.message);
-      } else {
-        setVehicleTypes(data);
-      }
+    const handleAddClick = () => {
+        fileInputRef.current?.click();
     };
 
-    fetchVehicleTypes();
-  }, []);
+    const handleVehiclePhotoUpload = async (
+        e: React.ChangeEvent<HTMLInputElement>
+    ) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const result = reader.result as string;
+                setImagePreview(result);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
-  return (
-    <div className="min-h-screen bg-[#0D3A45] text-white flex flex-col items-center py-10">
-      <h1 className="text-xl font-semibold mt-20 mb-6">
-        Información acerca del vehículo
-      </h1>
+    const handleSubmit = () => {
+        if (!isFormComplete) {
+            alert("Por favor completa todos los campos antes de continuar.");
+            return;
+        }
 
-      <div className="bg-white text-black p-6 rounded-lg w-11/12 max-w-md">
-        <select
-          className="w-full mb-4 px-4 py-2 border rounded"
-          value={selectedVehicleTypeId}
-          onChange={(e) => setSelectedVehicleTypeId(e.target.value)}
-        >
-          <option value="">Seleccione el tipo de vehículo</option>
-          {vehicleTypes.map((vehicle) => (
-            <option key={vehicle.id} value={vehicle.id}>
-              {vehicle.name} - {vehicle.load_capacity_kg} kg
-            </option>
-          ))}
-        </select>
+        // Guardar todos los datos en localStorage con expiración de 24 horas
+        setLocalStorageWithExpiry("vehicleType", selectedVehicleType, 24);
+        setLocalStorageWithExpiry("plateNumber", plateNumber, 24);
+        setLocalStorageWithExpiry("brand", brand, 24);
+        setLocalStorageWithExpiry("model", model, 24);
+        setLocalStorageWithExpiry("color", color, 24);
+        setLocalStorageWithExpiry("vehicleInfoCompleted", "true", 24);
 
-        <input
-          type="text"
-          placeholder="Número de placa"
-          value={plateNumber}
-          onChange={(e) => setPlateNumber(e.target.value)}
-          className="w-full mb-4 px-4 py-2 border rounded"
-        />
+        // Guardar la imagen en localStorage con expiración
+        if (imagePreview) {
+            setLocalStorageWithExpiry("vehiclePhoto", imagePreview, 24);
+            console.log(
+                "✅ Imagen guardada en localStorage (expira en 24 horas)"
+            );
+        }
 
-        <input
-          type="text"
-          placeholder="Marca"
-          value={brand}
-          onChange={(e) => setBrand(e.target.value)}
-          className="w-full mb-4 px-4 py-2 border rounded"
-        />
+        // Mostrar en consola
+        console.log(
+            "✅ Datos guardados en localStorage (expiran en 24 horas):"
+        );
+        console.log("vehicleType:", selectedVehicleType);
+        console.log("plateNumber:", plateNumber);
+        console.log("brand:", brand);
+        console.log("model:", model);
+        console.log("color:", color);
 
-        <input
-          type="text"
-          placeholder="Modelo"
-          value={model}
-          onChange={(e) => setModel(e.target.value)}
-          className="w-full mb-4 px-4 py-2 border rounded"
-        />
+        router.push("/carrier_register/information");
+    };
 
-        <input
-          type="text"
-          placeholder="Color"
-          value={color}
-          onChange={(e) => setColor(e.target.value)}
-          className="w-full mb-4 px-4 py-2 border rounded"
-        />
+    useEffect(() => {
+        const fetchVehicleTypes = async () => {
+            const { data, error } = await supabase
+                .from("vehicle_type")
+                .select("*");
+            if (error) {
+                console.error(
+                    "Error al obtener tipos de vehículo:",
+                    error.message
+                );
+            } else {
+                setVehicleTypes(data || []);
+            }
+        };
 
-        <div className="flex flex-col items-center">
-          <input
-            type="file"
-            accept="image/*"
-            ref={fileInputRef}
-            onChange={handleFileChange}
-            className="hidden"
-          />
-          <button
-            onClick={handleAddClick}
-            className={`border px-4 py-1 rounded-full mb-2 ${
-              imageFile
-                ? "border-green-500 text-green-500"
-                : "border-emerald-500 text-emerald-500"
-            }`}
-          >
-            {imageFile ? "Imagen lista" : "Añadir imagen"}
-          </button>
+        fetchVehicleTypes();
+
+        // Cargar valores guardados en localStorage (si existen y no han expirado)
+        if (typeof window !== "undefined") {
+            const savedVehicleType = getLocalStorageWithExpiry("vehicleType");
+            const savedPlateNumber = getLocalStorageWithExpiry("plateNumber");
+            const savedBrand = getLocalStorageWithExpiry("brand");
+            const savedModel = getLocalStorageWithExpiry("model");
+            const savedColor = getLocalStorageWithExpiry("color");
+            const savedPhoto = getLocalStorageWithExpiry("vehiclePhoto");
+
+            if (savedVehicleType) setSelectedVehicleType(savedVehicleType);
+            if (savedPlateNumber) setPlateNumber(savedPlateNumber);
+            if (savedBrand) setBrand(savedBrand);
+            if (savedModel) setModel(savedModel);
+            if (savedColor) setColor(savedColor);
+
+            if (savedPhoto) {
+                console.log("✅ Imagen recuperada desde localStorage");
+                setImagePreview(savedPhoto);
+            }
+        }
+    }, []);
+
+    return (
+        <div className="min-h-screen bg-[#0D3A45] text-white flex flex-col items-center px-4">
+            <div className="h-[10vh] w-full mt-5 text-center">
+                <h1 className="text-xl text-white font-semibold">
+                    Información acerca del vehículo
+                </h1>
+            </div>
+
+            {/* Tipo de vehículo */}
+            <div className="bg-white text-black p-6 rounded-lg w-11/12 max-w-md mb-4">
+                <p className="text-sm mt-2 text-justify mb-3">
+                    Seleccione el tipo de vehiculo.
+                </p>
+                <select
+                    value={selectedVehicleType}
+                    onChange={(e) => setSelectedVehicleType(e.target.value)}
+                    className="w-full mb-4 px-4 py-2 border rounded"
+                >
+                    <option value="">Seleccione el tipo de vehículo</option>
+                    {vehicleTypes.map((vehicle) => (
+                        <option key={vehicle.id} value={vehicle.id}>
+                            {vehicle.name} - {vehicle.load_capacity_kg} kg
+                        </option>
+                    ))}
+                </select>
+            </div>
+
+            {/* Número de placa */}
+            <div className="bg-white text-black p-6 rounded-lg w-11/12 max-w-md mb-4">
+                <p className="text-sm mt-2 text-justify mb-3">
+                    Ingresa el número de placa del vehículo.
+                </p>
+                <input
+                    type="text"
+                    value={plateNumber}
+                    onChange={(e) => setPlateNumber(e.target.value)}
+                    placeholder="Número de placa"
+                    className="w-full mb-4 px-4 py-2 border rounded"
+                />
+
+                <input
+                    type="text"
+                    placeholder="Marca"
+                    value={brand}
+                    onChange={(e) => setBrand(e.target.value)}
+                    className="w-full mb-4 px-4 py-2 border rounded"
+                />
+
+                <input
+                    type="text"
+                    placeholder="Modelo"
+                    value={model}
+                    onChange={(e) => setModel(e.target.value)}
+                    className="w-full mb-4 px-4 py-2 border rounded"
+                />
+
+                <input
+                    type="text"
+                    placeholder="Color"
+                    value={color}
+                    onChange={(e) => setColor(e.target.value)}
+                    className="w-full mb-4 px-4 py-2 border rounded"
+                />
+            </div>
+
+            {/* Marca */}
+            <div className="bg-white text-black p-6 rounded-lg w-11/12 max-w-md mb-4">
+                <p className="text-sm mt-2 text-justify mb-3">
+                    Ingresa la marca de tu vehículo.
+                </p>
+                <input
+                    type="text"
+                    value={brand}
+                    onChange={(e) => setBrand(e.target.value)}
+                    placeholder="Marca del vehículo"
+                    className="w-full mb-4 px-4 py-2 border rounded"
+                />
+            </div>
+
+            {/* Modelo */}
+            <div className="bg-white text-black p-6 rounded-lg w-11/12 max-w-md mb-4">
+                <p className="text-sm mt-2 text-justify mb-3">
+                    Ingresa el modelo de tu vehículo.
+                </p>
+                <input
+                    type="text"
+                    value={model}
+                    onChange={(e) => setModel(e.target.value)}
+                    placeholder="Modelo del vehículo"
+                    className="w-full mb-4 px-4 py-2 border rounded"
+                />
+            </div>
+
+            {/* Color */}
+            <div className="bg-white text-black p-6 rounded-lg w-11/12 max-w-md mb-4">
+                <p className="text-sm mt-2 text-justify mb-3">
+                    Ingresa el color del vehículo.
+                </p>
+                <input
+                    type="text"
+                    value={color}
+                    onChange={(e) => setColor(e.target.value)}
+                    placeholder="Color del vehículo"
+                    className="w-full mb-4 px-4 py-2 border rounded"
+                />
+            </div>
+
+            {/* Imagen del vehículo */}
+            <div className="bg-white text-black p-6 rounded-lg w-11/12 max-w-md mb-4">
+                <div className="flex flex-col items-center">
+                    <Image
+                        src={imagePreview || "/muestra_carro.svg"}
+                        alt="Foto del vehículo"
+                        width={192}
+                        height={192}
+                        className="rounded mb-4 object-cover"
+                    />
+                    <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleVehiclePhotoUpload}
+                        className="hidden"
+                        ref={fileInputRef}
+                    />
+                    <button
+                        onClick={handleAddClick}
+                        className="border border-emerald-500 text-emerald-500 px-4 py-1 rounded-full mb-2"
+                    >
+                        Añadir foto del vehículo
+                    </button>
+                </div>
+                <p className="text-sm mt-4 text-gray-600 text-center">
+                    Toma una foto de tu automóvil en la cual se muestre el
+                    número de placa.
+                </p>
+            </div>
+
+            {/* Botón Aceptar */}
+            <button
+                onClick={handleSubmit}
+                disabled={!isFormComplete}
+                className={`px-8 py-3 rounded-full mt-6 ${
+                    isFormComplete
+                        ? "bg-[#21E6C1] text-black"
+                        : "bg-gray-400 text-white cursor-not-allowed"
+                }`}
+            >
+                Aceptar
+            </button>
+
+            <Link href="/carrier_register/information">
+                <button className="mt-8 text-sm underline mb-8">
+                    Regresar
+                </button>
+            </Link>
         </div>
-
-        <p className="text-sm mt-4 text-gray-600">
-          Toma una foto de tu automóvil en la cual se muestre el número de placa.
-        </p>
-      </div>
-
-      <button
-        onClick={handleSubmit}
-        className="bg-[#21E6C1] text-black px-6 py-2 rounded-full mt-6"
-      >
-        Aceptar
-      </button>
-
-      <Link href="/carrier_register/information">
-        <button className="mt-8 text-sm underline">Regresar</button>
-      </Link>
-    </div>
-  );
+    );
 }
