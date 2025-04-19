@@ -182,6 +182,8 @@ export function RegisterUserForm({
                 password: hashedPassword,
                 second_name: formData.second_name || null,
                 second_surname: formData.second_surname || null,
+                verification_carrier: false,
+                approved_carrier: false,
             };
     
             const { error } = await supabase.from("person").insert([secureFormData]);

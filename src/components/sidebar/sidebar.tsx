@@ -1,151 +1,239 @@
-"use client";
-
-import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation"; // Import the router
-import { supabase } from "@/lib/supabase/supabaseClient";
+import { useEffect, useState } from "react"
+import Link from "next/link"
+import { useRouter, usePathname } from "next/navigation"
 import {
-    User,
-    MapPin,
-    FileText,
-    Package,
-    HeadphonesIcon,
-    Settings,
-    LogOut,
-    ChevronRight,
-    Star,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+  CircleUser,
+  MapPin,
+  FileText,
+  HeadphonesIcon,
+  Settings,
+  LogOut,
+  ChevronRight,
+  Star,
+  Wallet,
+  Clock,
+} from "lucide-react"
+import { cn } from "@/lib/utils"
+import { supabase } from '@/lib/supabase/supabaseClient'
+import Image from "next/image"
 
 interface SidebarProps {
-    isOpen: boolean;
-    onClose: () => void;
+  isOpen: boolean
+  onClose: () => void
 }
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
-    const [activeItem, setActiveItem] = useState("Ciudad");
-    const [rating] = useState(0);
-    const router = useRouter(); // Initialize the router
+  const router = useRouter()
+  const pathname = usePathname()
+  const [activeItem, setActiveItem] = useState("")
+  const [rating] = useState(0)
+  const [isDriverMode, setIsDriverMode] = useState(false)
+  const [transitionDuration, setTransitionDuration] = useState("400ms")
+  const [userInfo, setUserInfo] = useState<{ first_name: string, first_surname: string } | null>(null)
 
-    const handleLogout = async () => {
-        try {
-            // Cierre de sesión con Supabase
-            const { error } = await supabase.auth.signOut();
-            
-            if (error) {
-                throw error;
-            }
-            
-            // Cierra el sidebar
-            onClose();
-            
-            // Redirecciona al usuario a la página de login
-            router.push('/login');
-            
-            // Opcional: refresca la página para asegurar que se borren todos los estados
-            // router.refresh(); // Commented out as it might cause issues in some Next.js versions
-            
-        } catch (error) {
-            console.error("Error durante el cierre de sesión:", error);
-            // Podrías implementar una notificación de error aquí
+  const clientMenuItems = [
+    { name: "Ciudad", icon: <MapPin size={20} />, path: "/customer/main_view" },
+    { name: "Historial de solicitudes", icon: <FileText size={20} />, path: "/customer/request_history" },
+    { name: "Soporte Técnico", icon: <HeadphonesIcon size={20} />, path: "/customer/support" },
+    { name: "Configuraciones", icon: <Settings size={20} />, path: "/customer/settings" },
+  ]
+
+  const driverMenuItems = [
+    { name: "Ciudad", icon: <MapPin size={20} />, path: "/carrier/main_view" },
+    { name: "Cartera", icon: <Wallet size={20} />, path: "/carrier/wallet" },
+    { name: "Historial de viajes", icon: <Clock size={20} />, path: "/carrier/trips_history" },
+    { name: "Soporte Técnico", icon: <HeadphonesIcon size={20} />, path: "/carrier/support" },
+    { name: "Configuraciones", icon: <Settings size={20} />, path: "/carrier/settings" },
+  ]
+
+  const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null)
+
+  // Determinar automáticamente si está en modo conductor o cliente
+  useEffect(() => {
+    if (pathname) {
+      setIsDriverMode(pathname.startsWith('/carrier/main_view') || 
+                      pathname === '/carrier/wallet' || 
+                      pathname === '/carrier/trips_history' ||
+                      pathname === '/carrier/support' ||
+                      pathname === '/carrier/settings' ||
+                      pathname === '/carrier/profile')
+    }
+  }, [pathname])
+
+  // Actualizar el ítem activo basado en la ruta actual
+  useEffect(() => {
+    if (pathname) {
+      const menuItems = isDriverMode ? driverMenuItems : clientMenuItems
+      const currentItem = menuItems.find(item => 
+        pathname === item.path || pathname.startsWith(`${item.path}/`)
+      )
+      
+      if (currentItem) {
+        setActiveItem(currentItem.name)
+      }
+    }
+  }, [pathname, isDriverMode])
+
+  // Restablecer la duración de la transición después de completar la navegación
+  useEffect(() => {
+    if (transitionDuration === "300ms") {
+      const timer = setTimeout(() => {
+        setTransitionDuration("400ms")
+      }, 500)
+      return () => clearTimeout(timer)
+    }
+  }, [transitionDuration])
+
+  const menuItems = isDriverMode ? driverMenuItems : clientMenuItems
+
+  const toggleMode = () => {
+    setTransitionDuration("300ms")
+    
+    const newMode = !isDriverMode
+    setIsDriverMode(newMode)
+
+    onClose()
+    
+    setTimeout(() => {
+      router.push(newMode ? "/carrier/main_view" : "/customer/main_view")
+      setActiveItem("Ciudad")
+    }, 300) 
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem("main_view")  // Limpiar localStorage
+    router.push("/login")
+    onClose()
+  }
+
+  // Función para manejar la navegación al perfil
+  const navigateToProfile = () => {
+    const profilePath = isDriverMode ? "/carrier/profile" : "/customer/profile"
+    router.push(profilePath)
+    onClose()
+  }
+
+  // Obtener el userId desde localStorage
+  const userId = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("main_view") || "{}").userId : null;
+
+  // Obtener datos del usuario desde Supabase
+  useEffect(() => {
+    if (userId) {
+      const fetchUserInfo = async () => {
+        const { data, error } = await supabase
+          .from("person")
+          .select("first_name, first_surname, profile_img") 
+          .eq("id", userId)
+          .single()
+  
+        if (error) {
+          console.error("Error al obtener los datos del usuario:", error)
+          return
         }
-    };
+  
+        setUserInfo({
+          first_name: data.first_name,
+          first_surname: data.first_surname,
+        })
+  
+        if (data.profile_img) {
+          setProfileImageUrl(data.profile_img)
+        }
+      }
+  
+      fetchUserInfo()
+    }
+  }, [userId])
+  
 
-    const menuItems = [
-        {
-            name: "Ciudad",
-            href: "/customer/main_view",
-            icon: <MapPin size={20} />,
-        },
-        {
-            name: "Historial de solicitudes",
-            href: "/history",
-            icon: <FileText size={20} />,
-        },
-        { name: "Entregas", href: "/delivery", icon: <Package size={20} /> },
-        {
-            name: "Soporte Técnico",
-            href: "/tsupport",
-            icon: <HeadphonesIcon size={20} />,
-        },
-        {
-            name: "Configuraciones",
-            href: "/configuration",
-            icon: <Settings size={20} />,
-        },
-    ];
-
-    return (
-        <div
-            className={cn(
-                "fixed inset-y-0 left-0 z-50 w-64 flex flex-col bg-[#0d2a33] text-white transform transition-transform duration-300 ease-in-out h-full",
-                isOpen ? "translate-x-0" : "-translate-x-full"
+  return (
+    <div
+      className={cn(
+        "fixed inset-y-0 left-0 z-50 w-64 flex flex-col bg-[#0d2a33] text-white transform h-full",
+        isOpen ? "translate-x-0" : "-translate-x-full",
+      )}
+      style={{
+        transition: `transform ${transitionDuration} ease-in-out`
+      }}
+    >
+      {/* Perfil de usuario */}
+      <div 
+        className="flex items-center justify-between p-4 border-b border-[#1a3b45] cursor-pointer hover:bg-[#1a3b45] transition-colors"
+        onClick={navigateToProfile}
+      >
+        <div className="flex items-center gap-3">
+        <div className="w-8 h-8 rounded-full bg-[#1a3b45] flex items-center justify-center overflow-hidden">
+            {profileImageUrl ? (
+              <Image
+                src={profileImageUrl}
+                alt="Foto de perfil"
+                width={32}
+                height={32}
+                className="object-cover w-full h-full rounded-full"
+              />
+            ) : (
+              <CircleUser size={20} />
             )}
-        >
-            {/* User Profile */}
-            <div className="flex items-center justify-between p-4 border-b border-[#1a3b45]">
-                <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-[#1a3b45] flex items-center justify-center">
-                        <User size={18} />
-                    </div>
-                    <div>
-                        <p className="font-medium">Usuario1</p>
-                        <div className="flex items-center">
-                            {[...Array(5)].map((_, i) => (
-                                <Star
-                                    key={i}
-                                    size={14}
-                                    className={`${
-                                        i < rating
-                                            ? "text-yellow-400 fill-yellow-400"
-                                            : "text-gray-400"
-                                    }`}
-                                />
-                            ))}
-                            <span className="ml-1 text-xs text-gray-300">
-                                0 (0)
-                            </span>
-                        </div>
-                    </div>
-                </div>
-                <ChevronRight size={20} />
-            </div>
+          </div>
 
-            {/* Menu Items */}
-            <div className="flex-1 overflow-y-auto">
-                {menuItems.map((item) => (
-                    <Link
-                        href={item.href}
-                        key={item.name}
-                        onClick={() => setActiveItem(item.name)}
-                        className={cn(
-                            "flex items-center gap-3 p-4 hover:bg-[#1a3b45] transition-colors",
-                            activeItem === item.name && "bg-[#16a085]"
-                        )}
-                    >
-                        {item.icon}
-                        <span>{item.name}</span>
-                    </Link>
-                ))}
+          <div>
+            <h3 className="text-white text-x2">{userInfo ? `${userInfo.first_name} ${userInfo.first_surname}` : "..."}</h3>
+            <div className="flex items-center">
+              {[...Array(5)].map((_, i) => (
+                <Star
+                  key={i}
+                  size={14}
+                  className={i < rating ? "text-yellow-400 fill-yellow-400" : "text-gray-400"}
+                />
+              ))}
+              <span className="ml-1 text-xs text-gray-300">0 (0)</span>
             </div>
-
-            {/* Logout Button */}
-            <div className="p-4 border-t border-[#1a3b45]">
-                <button
-                    className="flex items-center gap-3 w-full justify-center py-3 hover:bg-[#1a3b45] transition-colors rounded-md"
-                    onClick={handleLogout}
-                >
-                    <span>Cerrar Sesión</span>
-                    <LogOut size={18} />
-                </button>
-            </div>
-
-            {/* Driver Mode Button */}
-            <div className="p-4 bg-[#0a1f26]">
-                <button className="w-full bg-[#16d6a1] text-[#0d2a33] font-medium py-3 rounded-md hover:bg-[#14c091] transition-colors">
-                    Modo conductor
-                </button>
-            </div>
+          </div>
         </div>
-    );
+        <ChevronRight size={20} />
+      </div>
+
+      {/* Ítems del menú */}
+      <div className="flex-1 overflow-y-auto">
+        {menuItems.map((item) => (
+          <Link
+            href={item.path}
+            key={item.name}
+            onClick={() => {
+              setActiveItem(item.name)
+              onClose() // cerrar el menú al hacer clic
+            }}
+            className={cn(
+              "flex items-center gap-3 p-4 hover:bg-[#1a3b45] transition-colors",
+              activeItem === item.name && "bg-[#16a085]",
+            )}
+          >
+            {item.icon}
+            <span>{item.name}</span>
+          </Link>
+        ))}
+      </div>
+
+      {/* Botón de cerrar sesión */}
+      <div className="p-4 border-t border-[#1a3b45]">
+        <button
+          className="flex items-center gap-3 w-full justify-center py-3"
+          onClick={handleLogout}
+        >
+          <span>Cerrar Sesión</span>
+          <LogOut size={18} />
+        </button>
+      </div>
+
+      {/* Botón de cambiar modo */}
+      <div className="p-4 bg-[#0a1f26]">
+        <button
+          className="w-full bg-[#16d6a1] text-[#0d2a33] font-medium py-3 rounded-md hover:bg-[#14c091] transition-colors"
+          onClick={toggleMode}
+        >
+          {isDriverMode ? "Modo cliente" : "Modo conductor"}
+        </button>
+      </div>
+    </div>
+  )
 }
