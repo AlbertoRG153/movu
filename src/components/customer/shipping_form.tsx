@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Menu, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 
 import {
     Select,
@@ -31,7 +31,7 @@ export default function ShippingForm() {
     const [serviceType, setServiceType] = useState("");
     const [weight, setWeight] = useState("");
     const [pesoCarga, setPesoCarga] = useState("Kg"); // Default to Kg
-    
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         // Handle form submission logic here
@@ -68,11 +68,11 @@ export default function ShippingForm() {
         const fetchVehicleTypes = async () => {
             try {
                 const { data, error } = await supabase
-                    .from('vehicle_type')
-                    .select('*');
-                
+                    .from("vehicle_type")
+                    .select("*");
+
                 if (error) throw error;
-                
+
                 if (data) {
                     setVehicleTypes(data);
                 }
@@ -88,48 +88,60 @@ export default function ShippingForm() {
     const calculateSuggestedPrice = () => {
         // Si no es flete, no calculamos precio
         if (serviceType !== "flete") return 0;
-        
+
         const w = parseFloat(weight);
-        
+
         if (isNaN(w) || w <= 0 || !vehicleType) return 0;
-        
+
         // Find the selected vehicle in our fetched data
-        const selectedVehicleData = vehicleTypes.find(v => v.id === vehicleType);
-        
+        const selectedVehicleData = vehicleTypes.find(
+            (v) => v.id === vehicleType
+        );
+
         if (!selectedVehicleData) return 0;
-        
+
         // Pricing data based on vehicle types
         const getPricingByCapacity = (capacity: number) => {
-            if (capacity <= 1000) return { baseRate: 500, ratePerKm: 10, ratePerKg: 2 };
-            if (capacity <= 2000) return { baseRate: 700, ratePerKm: 12, ratePerKg: 2.5 };
-            if (capacity <= 5000) return { baseRate: 900, ratePerKm: 14, ratePerKg: 3 };
-            if (capacity <= 8000) return { baseRate: 1200, ratePerKm: 18, ratePerKg: 3.5 };
-            if (capacity <= 10000) return { baseRate: 1500, ratePerKm: 20, ratePerKg: 4 };
-            if (capacity <= 15000) return { baseRate: 2000, ratePerKm: 25, ratePerKg: 5 };
+            if (capacity <= 1000)
+                return { baseRate: 500, ratePerKm: 10, ratePerKg: 2 };
+            if (capacity <= 2000)
+                return { baseRate: 700, ratePerKm: 12, ratePerKg: 2.5 };
+            if (capacity <= 5000)
+                return { baseRate: 900, ratePerKm: 14, ratePerKg: 3 };
+            if (capacity <= 8000)
+                return { baseRate: 1200, ratePerKm: 18, ratePerKg: 3.5 };
+            if (capacity <= 10000)
+                return { baseRate: 1500, ratePerKm: 20, ratePerKg: 4 };
+            if (capacity <= 15000)
+                return { baseRate: 2000, ratePerKm: 25, ratePerKg: 5 };
             return { baseRate: 1100, ratePerKm: 16, ratePerKg: 3.2 }; // Default for very large vehicles
         };
-        
-        const pricing = getPricingByCapacity(selectedVehicleData.load_capacity_kg);
+
+        const pricing = getPricingByCapacity(
+            selectedVehicleData.load_capacity_kg
+        );
         const maxWeight = selectedVehicleData.load_capacity_kg;
-        
+
         if (w > maxWeight) {
             return pricing.baseRate + maxWeight * pricing.ratePerKg;
         }
-        
+
         const standardDistance = 10;
-        const price = pricing.baseRate + (standardDistance * pricing.ratePerKm) + (w * pricing.ratePerKg);
-        
+        const price =
+            pricing.baseRate +
+            standardDistance * pricing.ratePerKm +
+            w * pricing.ratePerKg;
+
         return price;
     };
 
     return (
         <div className="bg-gray-100 min-h-screen flex flex-col">
             {/* Header */}
-            <header className="bg-white p-4 flex items-center justify-between shadow-sm">
-                <button className="text-gray-700">
-                    <Menu size={24} />
-                </button>
-                <h1 className="text-center font-medium text-lg">Fletes</h1>
+            <header className="bg-white p-4 flex items-center justify-center shadow-sm">
+                <h1 className="text-center font-medium text-lg">
+                    Solicitud de Viaje
+                </h1>
                 <div className="w-6"></div> {/* Spacer for alignment */}
             </header>
 
@@ -249,10 +261,12 @@ export default function ShippingForm() {
                     <label className="text-sm text-gray-700 mb-1 block">
                         Descripción de su {serviceType || "servicio"}
                     </label>
-      
+
                     <div className="bg-white rounded-lg shadow-sm p-4">
                         <Textarea
-                            placeholder={`Describa su ${serviceType || "servicio"}`}
+                            placeholder={`Describa su ${
+                                serviceType || "servicio"
+                            }`}
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                             className="border-none shadow-none focus-visible:ring-0 p-0 h-auto min-h-[80px] resize-none"
@@ -302,7 +316,9 @@ export default function ShippingForm() {
                                     <Input
                                         placeholder="Ej: 200"
                                         value={weight}
-                                        onChange={(e) => setWeight(e.target.value)}
+                                        onChange={(e) =>
+                                            setWeight(e.target.value)
+                                        }
                                         className="border-none shadow-none focus-visible:ring-0 p-0 h-auto"
                                     />
                                 </div>
@@ -314,7 +330,8 @@ export default function ShippingForm() {
                 {/* Vehicle Type */}
                 <div>
                     <label className="text-sm text-gray-700 mb-1 block">
-                        Tipo de vehículo {vehicleTypes.length === 0 && "(Cargando...)"}
+                        Tipo de vehículo{" "}
+                        {vehicleTypes.length === 0 && "(Cargando...)"}
                     </label>
                     <div className="bg-white rounded-lg shadow-sm">
                         <Select
@@ -327,8 +344,12 @@ export default function ShippingForm() {
                             <SelectContent>
                                 {vehicleTypes.length > 0 ? (
                                     vehicleTypes.map((vehicle) => (
-                                        <SelectItem key={vehicle.id} value={vehicle.id}>
-                                            {vehicle.name} ({vehicle.load_capacity_kg} kg)
+                                        <SelectItem
+                                            key={vehicle.id}
+                                            value={vehicle.id}
+                                        >
+                                            {vehicle.name} (
+                                            {vehicle.load_capacity_kg} kg)
                                         </SelectItem>
                                     ))
                                 ) : (
@@ -344,7 +365,8 @@ export default function ShippingForm() {
                 {/* Image Upload */}
                 <div>
                     <label className="text-sm text-gray-700 mb-1 block">
-                        Imagen de {serviceType === "mudanza" ? "tu mudanza" : "tu flete"}
+                        Imagen de{" "}
+                        {serviceType === "mudanza" ? "tu mudanza" : "tu flete"}
                     </label>
                     <div className="flex items-center gap-4">
                         {image && (
@@ -379,7 +401,8 @@ export default function ShippingForm() {
                     {/* Precio sugerido - Solo visible para fletes */}
                     {serviceType === "flete" && (
                         <div className="text-sm text-emerald-600 font-medium mb-2">
-                            El precio sugerido es: L. {calculateSuggestedPrice().toFixed(2)}
+                            El precio sugerido es: L.{" "}
+                            {calculateSuggestedPrice().toFixed(2)}
                         </div>
                     )}
 

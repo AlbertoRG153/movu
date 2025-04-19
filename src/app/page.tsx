@@ -236,6 +236,7 @@ export default function Home() {
                         >
                             tiene su destino
                         </motion.span>
+
                     </motion.h1>
 
                     <motion.div
@@ -244,8 +245,8 @@ export default function Home() {
                         transition={{ duration: 0.8, delay: 1.2 }}
                         className="mt-8"
                     >
-                        <Link href="/login" className="md:hidden">
-                        <Button className="bg-emerald-500 hover:bg-emerald-600 text-white font-medium px-8 py-3 rounded-full transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/30 cursor-pointer">
+                        <Link href="/login" >
+                        <Button className="bg-emerald-500 hover:bg-emerald-600 text-white font-medium px-10 py-6 rounded-full transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/30 cursor-pointer">
                             ¡Comienza Ahora!
                         </Button>
                         </Link>
