@@ -3,6 +3,7 @@
 import { SidebarController } from "@/components/sidebar/sidebar_controller";
 import { ReactNode } from "react";
 import { usePathname } from "next/navigation";
+import "../globals.css";
 
 export default function Layout({ children }: { children: ReactNode }) {
     const pathname = usePathname();
