@@ -22,7 +22,7 @@ export const ProfileCustomer = () => {
   }
 
   const handleDriverRegister = () => {
-    router.push('/driver_register')
+    router.push('/carrier_register/information')
   }
 
   const fetchUserData = async () => {

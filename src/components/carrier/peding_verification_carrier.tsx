@@ -9,11 +9,11 @@ import { MapPin } from 'lucide-react'
 interface VehicleType {
   id: string
   name: string
-  load_capacity_kg: number
+  load_capacity_kg: number    
   volume: string
 }
 
-interface Vehicle { 
+interface Vehicle {
   id: string
   plate_number: string
   brand: string
@@ -23,7 +23,7 @@ interface Vehicle {
   id_vehicle_type: string
 }
 
-export const ProfileCarrier = () => {
+export const PendingVerificationCarrier = () => {
   const router = useRouter()
 
   const [cityName, setCityName] = useState('')
@@ -143,7 +143,13 @@ export const ProfileCarrier = () => {
             )}
         </div>
     </div>
-  </div>
+    
+
+  
+
+  {/* Mensaje de verificación */}
+  <p className="text-yellow-400 font-semibold text-center mt-2">Pendiente de verificación para conductor</p>
+</div>
 
         {/* Card ciudad */}
         <div
