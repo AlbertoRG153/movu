@@ -108,8 +108,8 @@ export default function DriverLicenseAndSelfiePage() {
     setLocalStorageWithExpiry('licenseExpiration', licenseExpiration, 24);
     setLocalStorageWithExpiry('selfiePreview', selfiePreview!, 24);
     setLocalStorageWithExpiry('driverLicenseCompleted', 'true', 24);
-  
-    router.push("/carrier_register/information");
+
+    router.push("/register_conductor/information");
   };
   
 
@@ -188,7 +188,7 @@ export default function DriverLicenseAndSelfiePage() {
         Aceptar
       </button>
 
-      <Link href="/carrier_register/information">
+      <Link href="/register_conductor/information">
         <button className="mt-8 mb-8 text-sm underline">Regresar</button>
       </Link>
     </div>

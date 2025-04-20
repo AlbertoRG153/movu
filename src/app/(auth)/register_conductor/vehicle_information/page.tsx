@@ -108,8 +108,10 @@ export default function VehiculoPage() {
     if (imagePreview) {
       setLocalStorageWithExpiry("vehiclePhoto", imagePreview, 24);
     }
+
+
     
-    router.push("/carrier_register/information");
+    router.push("/register_conductor/information");
   };
 
   useEffect(() => {
@@ -263,7 +265,7 @@ export default function VehiculoPage() {
         Aceptar
       </button>
 
-      <Link href="/carrier_register/information">
+      <Link href="/register_conductor/information">
         <button className="mt-8 text-sm underline mb-8">Regresar</button>
       </Link>
     </div>

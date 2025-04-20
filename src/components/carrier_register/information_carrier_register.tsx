@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase/supabaseClient';
 import { Alert, Snackbar } from '@mui/material';
 import { Check } from 'lucide-react';
 
-export function InformationCarrier() {
+export function InformationCarrierRegister() {
   const router = useRouter();
   const [driverLicenseCompleted, setDriverLicenseCompleted] = useState(false);
   const [vehicleInfoCompleted, setVehicleInfoCompleted] = useState(false);
@@ -81,8 +81,20 @@ export function InformationCarrier() {
       const licenseExpiration = getLocalStorageWithExpiry('licenseExpiration');
       const selfiePreview = getLocalStorageWithExpiry('selfiePreview');
   
-      const userData = JSON.parse(localStorage.getItem('main_view') || '{}');
-      const userId = userData.userId;
+      const email = localStorage.getItem("user_email");
+      if (!email) throw new Error("No se encontró el email del usuario en localStorage.");
+
+      const { data: user, error: userError } = await supabase
+        .from("person")
+        .select("id")
+        .eq("email", email)
+        .maybeSingle();
+
+      if (userError) throw userError;
+      if (!user) throw new Error("No se encontró un usuario con ese email.");
+
+      const userId = user.id;
+
   
       if (!vehicleType || !plateNumber || !brand || !model || !color || !vehiclePhoto) {
         throw new Error('Faltan datos del vehículo.');
@@ -139,7 +151,7 @@ export function InformationCarrier() {
       const { error: carrierError } = await supabase
         .from('carrier')
         .insert({
-          id: userId,
+          id : userId,
           id_person: userId,
           license: licenseNumber,
           license_expiration: licenseExpiration,
@@ -169,18 +181,12 @@ export function InformationCarrier() {
       localStorage.removeItem('selfiePreview');
       localStorage.removeItem('driverLicenseCompleted');
       localStorage.removeItem('vehicleInfoCompleted');
+      localStorage.removeItem('user_email');
   
       setAlertType('success');
       setAlertMessage('¡Datos guardados correctamente!');
       setOpenAlert(true);
-      setTimeout(() => {
-        const returnPath = localStorage.getItem('redirect_back_to')
-
-        if (returnPath) {
-          localStorage.removeItem('redirect_back_to') 
-          router.push(returnPath)
-        }
-      }, 3000);
+      setTimeout(() => router.push('/login_conductor'), 3000);
     } catch (error: unknown) {
       if (error instanceof Error) {
         console.error(error);
@@ -195,25 +201,15 @@ export function InformationCarrier() {
   };
   
 
-  const handleNextDriverLicense = () => router.push('/carrier_register/driver_license');
-  const handleNextVehicleInformation = () => router.push('/carrier_register/vehicle_information');
- 
-  const handleClose = () => {
-    const returnPath = localStorage.getItem('redirect_back_to')
-    if (returnPath) {
-      localStorage.removeItem('redirect_back_to')
-      router.push(returnPath)
-    } 
-  }
-    const handleCloseAlert = () => setOpenAlert(false);
+  const handleNextDriverLicense = () => router.push('/register_conductor/driver_license');
+  const handleNextVehicleInformation = () => router.push('/register_conductor/vehicle_information');
+  const handleClose = () => router.push('/customer/profile');
+  const handleCloseAlert = () => setOpenAlert(false);
 
   return (
     <div className="min-h-screen flex flex-col relative">
-      <div className="h-[10vh] bg-[#0D3A45] flex justify-end items-center px-6">
-        <button className="text-sm text-white px-4 py-1 rounded-md" onClick={() => setShowModal(true)}>
-          Cerrar
-        </button>
-      </div>
+    
+
 
       <div className="flex-grow bg-[#0D3A45] flex items-center justify-center px-4 py-10">
         <div className="w-full max-w-md text-center text-white">
@@ -236,6 +232,7 @@ export function InformationCarrier() {
               <span>Información acerca del vehículo</span>
               {vehicleInfoCompleted && <Check className="text-green-500 w-5 h-5" />}
             </button>
+
 
             <button
               type="submit"

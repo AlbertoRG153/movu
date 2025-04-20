@@ -9,8 +9,9 @@ export default function Layout({ children }: { children: ReactNode }) {
   
   // Verificar si la ruta comienza con alguno de estos patrones
   //revisar esto ya que tiene cambios (pendiente)
-  const routePatternsWithoutSidebar = ['/customer/profile', '/customer/profile/settings','/customer/profile/cities','/carrier_register/information','/carrier_register/vehicle_information',
-                                       '/carrier/profile','/carrier/profile/settings','/carrier/profile/cities', '/carrier_register/driver_license'
+  const routePatternsWithoutSidebar = ['/customer/profile/settings','/customer/profile/cities','/carrier_register/information','/carrier_register/vehicle_information',
+                                       '/carrier/profile/settings','/carrier/profile/cities', '/carrier_register/driver_license', '/register_conductor/information', 
+                                       '/register_conductor/driver_license', '/register_conductor/vehicle_information',
                                       ];
   
   const shouldShowSidebar =! routePatternsWithoutSidebar.some(pattern => 

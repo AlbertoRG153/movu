@@ -20,6 +20,8 @@ export const ProfileCustomer = () => {
   const handleCityChange = () => {
     router.push('/customer/profile/cities')
   }
+  
+  localStorage.setItem('redirect_back_to', window.location.pathname)
 
   const handleDriverRegister = () => {
     router.push('/carrier_register/information')
