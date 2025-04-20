@@ -18,6 +18,9 @@ import {
 import Image from "next/image";
 
 export default function ShippingForm() {
+ //   const TU_API_KEY = '5b3ce3597851110001cf624853dde1eac4cd4916b7bc93bb823e8532';
+  //  const [distance, setDistance] = useState(null);
+    const [pickup, setPickup] = useState("");
     const [destination, setDestination] = useState("");
     const [pickupTime, setPickupTime] = useState({
         date: "",
@@ -30,6 +33,7 @@ export default function ShippingForm() {
     const [image, setImage] = useState<File | null>(null);
     const [serviceType, setServiceType] = useState("");
     const [weight, setWeight] = useState("");
+    const [volume, setVolume] = useState("");
     const [pesoCarga, setPesoCarga] = useState("Kg"); // Default to Kg
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -37,13 +41,15 @@ export default function ShippingForm() {
         // Handle form submission logic here
         console.log({
             destination,
+            pickup,
             pickupTime,
             description,
             vehicleType,
             rate,
             image,
             serviceType,
-            weight: serviceType === "flete" ? weight : null, // Solo incluye peso si es flete
+            weight: serviceType === "flete" ? weight : null,
+            volume: serviceType === "flete" ? volume : null, // Solo incluye peso y volumen si es flete
             pesoCarga: serviceType === "flete" ? pesoCarga : null, // Solo incluye tipo de peso si es flete
         });
     };
@@ -58,6 +64,7 @@ export default function ShippingForm() {
         id: string;
         name: string;
         load_capacity_kg: number;
+        volume: number;
     }
 
     // In your component:
@@ -72,7 +79,6 @@ export default function ShippingForm() {
                     .select("*");
 
                 if (error) throw error;
-
                 if (data) {
                     setVehicleTypes(data);
                 }
@@ -80,60 +86,99 @@ export default function ShippingForm() {
                 console.error("Error fetching vehicle types:", error);
             }
         };
-
         fetchVehicleTypes();
     }, []);
-
-    // Then adjust your calculation function
-    const calculateSuggestedPrice = () => {
-        // Si no es flete, no calculamos precio
-        if (serviceType !== "flete") return 0;
-
-        const w = parseFloat(weight);
-
-        if (isNaN(w) || w <= 0 || !vehicleType) return 0;
-
-        // Find the selected vehicle in our fetched data
-        const selectedVehicleData = vehicleTypes.find(
-            (v) => v.id === vehicleType
-        );
-
-        if (!selectedVehicleData) return 0;
-
-        // Pricing data based on vehicle types
-        const getPricingByCapacity = (capacity: number) => {
-            if (capacity <= 1000)
-                return { baseRate: 500, ratePerKm: 10, ratePerKg: 2 };
-            if (capacity <= 2000)
-                return { baseRate: 700, ratePerKm: 12, ratePerKg: 2.5 };
-            if (capacity <= 5000)
-                return { baseRate: 900, ratePerKm: 14, ratePerKg: 3 };
-            if (capacity <= 8000)
-                return { baseRate: 1200, ratePerKm: 18, ratePerKg: 3.5 };
-            if (capacity <= 10000)
-                return { baseRate: 1500, ratePerKm: 20, ratePerKg: 4 };
-            if (capacity <= 15000)
-                return { baseRate: 2000, ratePerKm: 25, ratePerKg: 5 };
-            return { baseRate: 1100, ratePerKm: 16, ratePerKg: 3.2 }; // Default for very large vehicles
+    /** funcion para obtener distancia de direcciones
+     * useEffect(() => {
+        const getCoordinates = async (address: string) => {
+          const res = await fetch(`https://api.openrouteservice.org/geocode/search?api_key=${TU_API_KEY}&text=${encodeURIComponent(address)}`);
+          const data = await res.json();
+          return data.features[0]?.geometry.coordinates; // [lon, lat]
         };
-
-        const pricing = getPricingByCapacity(
-            selectedVehicleData.load_capacity_kg
-        );
-        const maxWeight = selectedVehicleData.load_capacity_kg;
-
-        if (w > maxWeight) {
-            return pricing.baseRate + maxWeight * pricing.ratePerKg;
+    
+        const calculateDistance = async () => {
+          if (!pickup || !destination) return;
+    
+          try {
+            const from = await getCoordinates(pickup);
+            const to = await getCoordinates(destination);
+    
+            if (!from || !to) return;
+    
+            const res = await fetch('https://api.openrouteservice.org/v2/directions/driving-car', {
+              method: 'POST',
+              headers: {
+                'Authorization': TU_API_KEY,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                coordinates: [from, to],
+              }),
+            });
+    
+            const data = await res.json();
+            setDistance(data.routes[0].summary.distance); // en metros
+          } catch (error) {
+            console.error("Error al calcular la distancia:", error);
+          }
+        };
+    
+        calculateDistance();
+      }, [pickup, destination]); // recalcular cada vez que cambie pickup o destination
+     */
+    
+    const calculateSuggestedPrice = () => {
+        const distancia = 10; // Estático por ahora
+        const selectedVehicleData = vehicleTypes.find((v) => v.id === vehicleType);
+        if (!selectedVehicleData) {
+            return 0;
         }
-
-        const standardDistance = 10;
-        const price =
-            pricing.baseRate +
-            standardDistance * pricing.ratePerKm +
-            w * pricing.ratePerKg;
-
-        return price;
+        const nombreToClaveTarifa: Record<string, string> = {"Pickup": "pickup","Volqueta": "volqueta","Camión de Mudanza Pequeño": "camion_pequeno","Camión de Mudanza Mediano": "camion_mediano","Camión de Mudanza Grande": "camion_grande","Camión de Carga Mediano": "camion_carga_mediano","Camión de Carga Grande": "camion_carga_grande",};
+    
+        const tarifas: Record<string, { base: number; km: number; kg?: number; m3?: number }> = {
+            pickup: { base: 500, km: 10, kg: 2, m3: 5 },
+            camion_pequeno: { base: 700, km: 12, kg: 2.5, m3: 6 },
+            camion_mediano: { base: 900, km: 14, kg: 3, m3: 7 },
+            camion_grande: { base: 1200, km: 18, kg: 3.5, m3: 8 },
+            volqueta: { base: 1100, km: 16, kg: 3.2, m3: 7.5 },
+            camion_carga_mediano: { base: 1500, km: 20, kg: 4, m3: 9 },
+            camion_carga_grande: { base: 2000, km: 25, kg: 5, m3: 10 },
+        };
+    
+        const tipoVehiculo = nombreToClaveTarifa[selectedVehicleData.name];
+        const tarifa = tarifas[tipoVehiculo];
+    
+        if (!tarifa) {
+            return 0;
+        }
+        let precioFinal = tarifa.base + distancia * tarifa.km;
+    
+        if (serviceType === "mudanza") {
+            // Sumar L 800 si es mudanza
+            precioFinal += 800;
+        } else if (serviceType === "flete") {
+            const tipoCarga = pesoCarga?.trim();
+            const w = parseFloat(weight);
+            const v = parseFloat(volume);
+    
+            if (tipoCarga === "Kg" && tarifa.kg && !isNaN(w)) {
+                const maxWeight = selectedVehicleData.load_capacity_kg;
+                const pesoFinal = Math.min(w, maxWeight);
+                precioFinal += pesoFinal * tarifa.kg;
+            } else if (tipoCarga === "m³" && tarifa.m3 && !isNaN(v)) {
+                const maxVolumen = selectedVehicleData.volume;
+                const volumenFinal = Math.min(v, maxVolumen);
+                precioFinal += volumenFinal * tarifa.m3;
+            }
+        }
+        return precioFinal;
     };
+    const [precioSugerido, setPrecioSugerido] = useState(0);
+    useEffect(() => {
+        const nuevoPrecio = calculateSuggestedPrice();
+        setPrecioSugerido(nuevoPrecio);
+        console.log(calculateSuggestedPrice());
+    }, [vehicleType, serviceType, pesoCarga, weight, volume, vehicleTypes]);    
 
     return (
         <div className="bg-gray-100 min-h-screen flex flex-col">
@@ -156,7 +201,7 @@ export default function ShippingForm() {
                         <Input
                             placeholder="Seleccione un lugar"
                             value={destination}
-                            onChange={(e) => setDestination(e.target.value)}
+                            onChange={(e) => setPickup(e.target.value)}
                             className="border-none shadow-none focus-visible:ring-0 p-0 h-auto"
                         />
                     </div>
@@ -176,7 +221,7 @@ export default function ShippingForm() {
                         />
                     </div>
                 </div>
-
+                {/**<p className="text-sm text-gray-700 mb-1 block">Distancia estimada: {distance ? `${(distance / 1000).toFixed(2)} km` : '...'} </p> */}
                 {/* Pickup Time */}
                 <div>
                     <label className="text-sm text-gray-700 mb-1 block">
@@ -272,8 +317,7 @@ export default function ShippingForm() {
                             className="border-none shadow-none focus-visible:ring-0 p-0 h-auto min-h-[80px] resize-none"
                         />
                     </div>
-                </div>
-
+                </div>   
                 {/* Peso de carga - Solo visible para fletes */}
                 {serviceType === "flete" && (
                     <div>
@@ -306,7 +350,22 @@ export default function ShippingForm() {
                                 <span className="text-gray-700">m³</span>
                             </label>
                         </div>
-
+                     {/* Volumen de carga - Solo visible para fletes con método m³ */}
+                    {serviceType === "flete" && pesoCarga === "m³" && (
+                        <div className="mt-4">
+                            <label className="text-sm text-gray-700 mb-1 block">
+                                Volumen de la carga (m³)
+                            </label>
+                        <div className="bg-white rounded-lg shadow-sm p-4">
+                            <Input
+                            placeholder="Ej: 5"
+                            value={volume}
+                            onChange={(e) => setVolume(e.target.value)}
+                            className="border-none shadow-none focus-visible:ring-0 p-0 h-auto"
+                            />
+                    </div>
+                </div>
+                )}   
                         {pesoCarga === "Kg" && (
                             <div className="mt-4">
                                 <label className="text-sm text-gray-700 mb-1 block">
@@ -397,15 +456,14 @@ export default function ShippingForm() {
                     <label className="text-sm text-gray-700 mb-1 block">
                         Ofrece tu tarifa
                     </label>
-
-                    {/* Precio sugerido - Solo visible para fletes */}
-                    {serviceType === "flete" && (
-                        <div className="text-sm text-emerald-600 font-medium mb-2">
-                            El precio sugerido es: L.{" "}
-                            {calculateSuggestedPrice().toFixed(2)}
-                        </div>
-                    )}
-
+                    {/* Precio sugerido */}
+                    {
+                       <div className="bg-white rounded-lg shadow-sm p-4">
+                        <p className="text-sm text-emerald-600 font-medium mb-2">
+                            Precio sugerido: <strong>L {precioSugerido.toFixed(2)}</strong>
+                        </p>
+                      </div>
+                    }
                     <div className="bg-white rounded-lg shadow-sm p-4">
                         <Input
                             placeholder="Ingrese su tarifa"
