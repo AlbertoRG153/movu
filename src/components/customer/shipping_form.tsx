@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus } from "lucide-react";
+import dynamic from "next/dynamic";
 
 import {
     Select,
@@ -18,15 +19,10 @@ import {
 import Image from "next/image";
 
 export default function ShippingForm() {
- //   const TU_API_KEY = '5b3ce3597851110001cf624853dde1eac4cd4916b7bc93bb823e8532';
-  //  const [distance, setDistance] = useState(null);
+    const [distance, setDistance] = useState(0);
     const [pickup, setPickup] = useState("");
     const [destination, setDestination] = useState("");
-    const [pickupTime, setPickupTime] = useState({
-        date: "",
-        hour: "",
-        minute: "",
-    });
+    const [pickupTime, setPickupTime] = useState<string>('');
     const [description, setDescription] = useState("");
     const [vehicleType, setVehicleType] = useState("");
     const [rate, setRate] = useState("");
@@ -35,7 +31,11 @@ export default function ShippingForm() {
     const [weight, setWeight] = useState("");
     const [volume, setVolume] = useState("");
     const [pesoCarga, setPesoCarga] = useState("Kg"); // Default to Kg
-
+    const [showMap, setShowMap] = useState(false);
+    const MapModal = dynamic(() => import("@/components/map").then(mod => mod.MapModal), {
+        ssr: false,
+      });
+      const [pickupDisplay, setPickupDisplay] = useState<string>("")
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         // Handle form submission logic here
@@ -88,47 +88,8 @@ export default function ShippingForm() {
         };
         fetchVehicleTypes();
     }, []);
-    /** funcion para obtener distancia de direcciones
-     * useEffect(() => {
-        const getCoordinates = async (address: string) => {
-          const res = await fetch(`https://api.openrouteservice.org/geocode/search?api_key=${TU_API_KEY}&text=${encodeURIComponent(address)}`);
-          const data = await res.json();
-          return data.features[0]?.geometry.coordinates; // [lon, lat]
-        };
-    
-        const calculateDistance = async () => {
-          if (!pickup || !destination) return;
-    
-          try {
-            const from = await getCoordinates(pickup);
-            const to = await getCoordinates(destination);
-    
-            if (!from || !to) return;
-    
-            const res = await fetch('https://api.openrouteservice.org/v2/directions/driving-car', {
-              method: 'POST',
-              headers: {
-                'Authorization': TU_API_KEY,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                coordinates: [from, to],
-              }),
-            });
-    
-            const data = await res.json();
-            setDistance(data.routes[0].summary.distance); // en metros
-          } catch (error) {
-            console.error("Error al calcular la distancia:", error);
-          }
-        };
-    
-        calculateDistance();
-      }, [pickup, destination]); // recalcular cada vez que cambie pickup o destination
-     */
-    
     const calculateSuggestedPrice = () => {
-        const distancia = 10; // Estático por ahora
+        const distancia = distance; //que se obtiene del mapa
         const selectedVehicleData = vehicleTypes.find((v) => v.id === vehicleType);
         if (!selectedVehicleData) {
             return 0;
@@ -192,84 +153,40 @@ export default function ShippingForm() {
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="flex-1 p-4 space-y-4">
-                {/* Pickup Location */}
+                {/* selecion de lugares de recogida y destino */}
                 <div>
                     <label className="text-sm text-gray-700 mb-1 block">
-                        Lugar de recogida
+                        Ruta del viaje
                     </label>
-                    <div className="bg-white rounded-lg shadow-sm p-4">
-                        <Input
-                            placeholder="Seleccione un lugar"
-                            value={destination}
-                            onChange={(e) => setPickup(e.target.value)}
-                            className="border-none shadow-none focus-visible:ring-0 p-0 h-auto"
-                        />
-                    </div>
                 </div>
-
-                {/* Destination */}
-                <div>
-                    <label className="text-sm text-gray-700 mb-1 block">
-                        Destino
-                    </label>
-                    <div className="bg-white rounded-lg shadow-sm p-4">
-                        <Input
-                            placeholder="Seleccione un lugar"
-                            value={destination}
-                            onChange={(e) => setDestination(e.target.value)}
-                            className="border-none shadow-none focus-visible:ring-0 p-0 h-auto"
-                        />
-                    </div>
-                </div>
-                {/**<p className="text-sm text-gray-700 mb-1 block">Distancia estimada: {distance ? `${(distance / 1000).toFixed(2)} km` : '...'} </p> */}
+                <div className="bg-white rounded-lg shadow-sm p-4 flex items-center justify-between">
+    <Input
+        placeholder="Seleccione un lugar"
+        value={pickupDisplay}
+        onChange={(e) => setPickupDisplay(e.target.value)}
+        className="border-none shadow-none focus-visible:ring-0 p-0 h-auto"
+    />
+    <Button type="button" onClick={() => setShowMap(true)}>
+        <Plus size={16} />
+    </Button>
+</div>
+                <p className="text-sm text-gray-700 mb-1 block">Distancia estimada: {distance !== null && distance !== undefined ? `${distance.toFixed(2)} km` : '...'} </p>
                 {/* Pickup Time */}
                 <div>
-                    <label className="text-sm text-gray-700 mb-1 block">
-                        Hora de recogida
-                    </label>
-                    <div className="flex gap-2">
-                        <div className="bg-white rounded-lg shadow-sm p-4 flex-1">
-                            <Input
-                                placeholder="Fecha"
-                                value={pickupTime.date}
-                                onChange={(e) =>
-                                    setPickupTime({
-                                        ...pickupTime,
-                                        date: e.target.value,
-                                    })
-                                }
-                                className="border-none shadow-none focus-visible:ring-0 p-0 h-auto"
-                            />
-                        </div>
-                        <div className="bg-white rounded-lg shadow-sm p-4 flex-1">
-                            <Input
-                                placeholder="Hora"
-                                value={pickupTime.hour}
-                                onChange={(e) =>
-                                    setPickupTime({
-                                        ...pickupTime,
-                                        hour: e.target.value,
-                                    })
-                                }
-                                className="border-none shadow-none focus-visible:ring-0 p-0 h-auto"
-                            />
-                        </div>
-                        <div className="bg-white rounded-lg shadow-sm p-4 flex-1">
-                            <Input
-                                placeholder="Minuto"
-                                value={pickupTime.minute}
-                                onChange={(e) =>
-                                    setPickupTime({
-                                        ...pickupTime,
-                                        minute: e.target.value,
-                                    })
-                                }
-                                className="border-none shadow-none focus-visible:ring-0 p-0 h-auto"
-                            />
-                        </div>
+                        <div>
+                            <label className="text-sm text-gray-700 mb-1 block">
+                                Hora de recogida
+                            </label>
+                            <div className="bg-white rounded-lg shadow-sm p-4">
+                            <input
+                                 type="datetime-local"
+                                  className="border-none shadow-none focus-visible:ring-0 p-0 h-auto w-full"
+                                 value={pickupTime}
+                                  onChange={(e) => setPickupTime(e.target.value)}
+                               />
+                         </div>
                     </div>
                 </div>
-
                 {/* Tipo de servicio */}
                 <div>
                     <label className="text-sm text-gray-700 mb-2 block">
@@ -482,6 +399,22 @@ export default function ShippingForm() {
                     Crear solicitud
                 </Button>
             </form>
+            <MapModal
+             open={showMap}
+                setOpen={setShowMap}
+                onConfirm={(coords, distanceKm) => {
+                    const pickupCoords = coords[0] as [number, number];
+                    const destinationCoords = coords[1] as [number, number];
+                setPickup(`${pickupCoords[0]},${pickupCoords[1]}`);
+                setDestination(`${destinationCoords[0]},${destinationCoords[1]}`);
+                setShowMap(false);
+                setDistance(distanceKm);
+                setPickupDisplay("Ubicacion seleccionada");
+                console.log("Origen : ", pickupCoords);
+                console.log("Destino: ", destinationCoords)
+                console.log("Distancia (km):", distanceKm);
+                                     }}
+            />
         </div>
     );
 }
