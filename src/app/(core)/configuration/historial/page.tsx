@@ -94,7 +94,7 @@ export default function HistorialViajePage() {
           <Link href="/configuraciones" className="mr-4">
             <ArrowLeft className="h-6 w-6" />
           </Link>
-          <h1 className="text-xl font-medium">Detalle del viajes</h1>
+          <h1 className="text-xl font-medium">Detalle delo viaje</h1>
         </div>
 
         <Card className="bg-[#132f4c] border-gray-700 text-white mb-6">
