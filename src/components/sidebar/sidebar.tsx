@@ -9,13 +9,48 @@ import {
   Settings,
   LogOut,
   ChevronRight,
-  Star,
   Wallet,
   Clock,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { supabase } from '@/lib/supabase/supabaseClient'
 import Image from "next/image"
+import Rating from '@mui/material/Rating'
+import { Box } from "@mui/material"
+
+interface Trip {
+  id: number;
+  status: {
+    name: string;
+  } | null;
+  travel_request: {
+    id_person: number;
+  } | null;
+}
+interface Rating {
+  id: number;
+  score_carrier: number;
+  id_trip: number;
+  trip: {
+    id: number;
+    id_carrier: number;
+    status: {
+      name: string;
+    } | null;
+  } | null;
+}
+
+
+interface RatingEntry {
+  score_person?: number;
+  score_carrier?: number;
+  id_trip: number;
+  trip?: {
+    id: number;
+    id_carrier: number;
+    status?: { name: string };
+  };
+}
 
 interface SidebarProps {
   isOpen: boolean
@@ -26,7 +61,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const router = useRouter()
   const pathname = usePathname()
   const [activeItem, setActiveItem] = useState("")
-  const [rating] = useState(0)
+const [ratingData, setRatingData] = useState<{ rating: number, totalTrips: number }>({ rating: 0, totalTrips: 0 })
   const [isDriverMode, setIsDriverMode] = useState(false)
   const [transitionDuration, setTransitionDuration] = useState("400ms")
   const [userInfo, setUserInfo] = useState<{ first_name: string, first_surname: string } | null>(null)
@@ -80,7 +115,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       }
     }
   }, [pathname, isDriverMode])
-
 
   // Restablecer la duración de la transición después de completar la navegación
   useEffect(() => {
@@ -154,7 +188,87 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     }
   }, [userId])
   
+  useEffect(() => {
+    const fetchRatingAndTripInfo = async () => {
+      if (!userId) return;
+  
+      const isClient = pathname?.startsWith("/customer");
+      let totalDeliveredTrips = 0;
+      let ratings: RatingEntry[] = [];
+  
+      if (isClient) {
+        const { data: tripData, error: tripError } = await supabase
+  .from("trip")
+  .select(`id, status ( name ), travel_request ( id_person )`) as unknown as { data: Trip[]; error: Error | null };
 
+        if (tripError || !tripData) {
+          console.error("Error al obtener trips:", tripError);
+          return;
+        }
+  
+
+        const clientTrips = tripData.filter(
+          (trip) => trip.travel_request?.id_person === userId
+        );
+  
+        totalDeliveredTrips = clientTrips.filter(
+          (trip) => trip.status?.name === "Entregado"
+        ).length;
+  
+        const tripIds = clientTrips.map((trip) => trip.id);
+  
+        const { data: ratingDataRes, error: ratingError } = await supabase
+          .from("rating")
+          .select("score_person, id_trip");
+  
+        if (ratingError || !ratingDataRes) {
+          console.error("Error al obtener ratings:", ratingError);
+          return;
+        }
+  
+        ratings = ratingDataRes.filter((rating) =>
+          tripIds.includes(rating.id_trip)
+        ) as RatingEntry[];
+      } else {
+        const { data: ratingDataRes, error: ratingError } = await supabase
+        .from("rating")
+        .select(`
+          id, score_carrier, id_trip,
+          trip ( id, id_carrier, status ( name ) )
+        `) as unknown as { data: Rating[] | null; error: Error | null };
+  
+        if (ratingError || !ratingDataRes) {
+          console.error("Error al obtener ratings del conductor:", ratingError);
+          return;
+        }
+  
+        const ratings = ratingDataRes?.filter(
+          (r) => r.trip?.id_carrier === userId
+        ) || [];
+        
+  
+        totalDeliveredTrips = ratings.filter(
+          (r) => r.trip?.status?.name === "Entregado"
+        ).length;
+      }
+  
+      const scoreKey: keyof RatingEntry = isClient ? "score_person" : "score_carrier";
+  
+      const validScores = ratings.filter((r) => typeof r[scoreKey] === "number");
+      const sum = validScores.reduce((acc, r) => acc + (r[scoreKey] as number), 0);
+      const avg = validScores.length > 0 ? sum / validScores.length : 5;
+  
+      setRatingData({
+        rating: avg,
+        totalTrips: totalDeliveredTrips,
+      });
+    };
+  
+    fetchRatingAndTripInfo();
+  }, [userId, isDriverMode, pathname]);
+  
+  
+  
   return (
     <div
       className={cn(
@@ -174,7 +288,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         onClick={navigateToProfile}
       >
         <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-full bg-[#1a3b45] flex items-center justify-center overflow-hidden">
+          <div className="w-8 h-8 rounded-full bg-[#1a3b45] flex items-center justify-center overflow-hidden">
             {profileImageUrl ? (
               <Image
                 src={profileImageUrl}
@@ -189,17 +303,25 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           </div>
 
           <div>
-            <h3 className="text-white text-x2">{userInfo ? `${userInfo.first_name} ${userInfo.first_surname}` : "..."}</h3>
-            <div className="flex items-center">
-              {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  size={14}
-                  className={i < rating ? "text-yellow-400 fill-yellow-400" : "text-gray-400"}
-                />
-              ))}
-              <span className="ml-1 text-xs text-gray-300">0 (0)</span>
-            </div>
+            <h3 className="text-white text-x2">
+              {userInfo ? `${userInfo.first_name} ${userInfo.first_surname}` : "..."}
+            </h3>
+
+            <Box display="flex" alignItems="center">
+              <Rating
+                value={ratingData.rating}
+                precision={0.1}
+                readOnly
+                size="small"
+                sx={{
+                  color: '#facc15',
+                  '& .MuiRating-iconEmpty': { color: '#d1d5db' },
+                }}
+              />
+              <span className="ml-1 text-xs text-gray-300">
+                {ratingData.rating.toFixed(2)} ({ratingData.totalTrips})
+              </span>
+            </Box>
           </div>
         </div>
         <ChevronRight size={20} />
