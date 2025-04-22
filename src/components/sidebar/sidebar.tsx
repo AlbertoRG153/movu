@@ -60,19 +60,27 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     }
   }, [pathname])
 
-  // Actualizar el ítem activo basado en la ruta actual
+  // Actualizar el ítem activo basado en la ruta actual (incluye perfil)
   useEffect(() => {
     if (pathname) {
+      const profilePath = isDriverMode ? "/carrier/profile" : "/customer/profile"
+
+      if (pathname === profilePath) {
+        setActiveItem("Perfil")
+        return
+      }
+
       const menuItems = isDriverMode ? driverMenuItems : clientMenuItems
       const currentItem = menuItems.find(item => 
         pathname === item.path || pathname.startsWith(`${item.path}/`)
       )
-      
+
       if (currentItem) {
         setActiveItem(currentItem.name)
       }
     }
   }, [pathname, isDriverMode])
+
 
   // Restablecer la duración de la transición después de completar la navegación
   useEffect(() => {
@@ -110,6 +118,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const navigateToProfile = () => {
     const profilePath = isDriverMode ? "/carrier/profile" : "/customer/profile"
     router.push(profilePath)
+    setActiveItem("Perfil")
     onClose()
   }
 
@@ -158,7 +167,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     >
       {/* Perfil de usuario */}
       <div 
-        className="flex items-center justify-between p-4 border-b border-[#1a3b45] cursor-pointer hover:bg-[#1a3b45] transition-colors"
+        className={cn(
+          "flex items-center justify-between p-4 border-b border-[#1a3b45] cursor-pointer hover:bg-[#1a3b45] transition-colors",
+          activeItem === "Perfil" && "bg-[#16a085]"
+        )}
         onClick={navigateToProfile}
       >
         <div className="flex items-center gap-3">

@@ -37,11 +37,12 @@ export function LoginConductor({
                         JSON.stringify({
                             email,
                             username: email.split("@")[0],
+                            userId: user.id,
                         })
                     );
                 }
 
-                router.push("/main_view");
+                router.push("/carrier/main_view");
             } else {
                 setError(
                     "Error en la autenticación. Verifique sus credenciales."

@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { loginUser } from "@/lib/supabase/supabaseFuntions";
+import Link from "next/link";
+
 
 /*interface FormData {
   email: string;
@@ -171,7 +173,7 @@ export function LoginForm({
                                     Crear usuario
                                 </a>
                             </div>
-                          {/* 
+                          
                             <br />
                             <br />
 
@@ -192,7 +194,7 @@ export function LoginForm({
                                     Acceder Modo Conductor
                                 </Button>
                             </Link>
-                            */}
+                        
                         </form>
                     </CardContent>
                 </Card>
