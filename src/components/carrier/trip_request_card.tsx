@@ -7,18 +7,21 @@ interface TripRequestProps {
         id: string;
         name: string;
         price: number;
-        plate: string;
         rating: number;
         reviews: number;
+        origin?: string;
+        destination?: string;
+        description?: string;
     };
     onAccept: () => void;
     onReject: () => void;
+    onViewDetails: () => void;
 }
 
 export default function TripRequestCard({
     request,
-    onAccept,
     onReject,
+    onViewDetails,
 }: TripRequestProps) {
     return (
         <div className="bg-[#092A39] text-white rounded-lg p-4 shadow-md">
@@ -33,7 +36,6 @@ export default function TripRequestCard({
                     <div className="font-medium">
                         L {request.price.toFixed(2)}
                     </div>
-                    <div className="text-sm">{request.plate}</div>
                 </div>
             </div>
 
@@ -55,10 +57,10 @@ export default function TripRequestCard({
                         Rechazar
                     </button>
                     <button
-                        onClick={onAccept}
+                        onClick={onViewDetails}
                         className="px-4 py-1 bg-[#2DF1A9] text-gray-800 rounded-full text-sm font-medium"
                     >
-                        Aceptar
+                        Ver mas detalle
                     </button>
                 </div>
             </div>
