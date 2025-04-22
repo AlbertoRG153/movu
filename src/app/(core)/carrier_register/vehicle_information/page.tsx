@@ -120,20 +120,7 @@ export default function VehiculoPage() {
         // Guardar la imagen en localStorage con expiración
         if (imagePreview) {
             setLocalStorageWithExpiry("vehiclePhoto", imagePreview, 24);
-            console.log(
-                "✅ Imagen guardada en localStorage (expira en 24 horas)"
-            );
         }
-
-        // Mostrar en consola
-        console.log(
-            "✅ Datos guardados en localStorage (expiran en 24 horas):"
-        );
-        console.log("vehicleType:", selectedVehicleType);
-        console.log("plateNumber:", plateNumber);
-        console.log("brand:", brand);
-        console.log("model:", model);
-        console.log("color:", color);
 
         router.push("/carrier_register/information");
     };
@@ -144,10 +131,7 @@ export default function VehiculoPage() {
                 .from("vehicle_type")
                 .select("*");
             if (error) {
-                console.error(
-                    "Error al obtener tipos de vehículo:",
-                    error.message
-                );
+                console.error("Error fetching vehicle types:", error.message);
             } else {
                 setVehicleTypes(data || []);
             }
@@ -214,30 +198,6 @@ export default function VehiculoPage() {
                     value={plateNumber}
                     onChange={(e) => setPlateNumber(e.target.value)}
                     placeholder="Número de placa"
-                    className="w-full mb-4 px-4 py-2 border rounded"
-                />
-
-                <input
-                    type="text"
-                    placeholder="Marca"
-                    value={brand}
-                    onChange={(e) => setBrand(e.target.value)}
-                    className="w-full mb-4 px-4 py-2 border rounded"
-                />
-
-                <input
-                    type="text"
-                    placeholder="Modelo"
-                    value={model}
-                    onChange={(e) => setModel(e.target.value)}
-                    className="w-full mb-4 px-4 py-2 border rounded"
-                />
-
-                <input
-                    type="text"
-                    placeholder="Color"
-                    value={color}
-                    onChange={(e) => setColor(e.target.value)}
                     className="w-full mb-4 px-4 py-2 border rounded"
                 />
             </div>

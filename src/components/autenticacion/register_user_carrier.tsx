@@ -26,6 +26,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import { useRouter } from "next/navigation";
 import { Alert, Snackbar } from "@mui/material";
+import dayjs from 'dayjs';
 
 export function RegisterUserConductor({
     className,
@@ -182,6 +183,8 @@ export function RegisterUserConductor({
                 password: hashedPassword,
                 second_name: formData.second_name || null,
                 second_surname: formData.second_surname || null,
+                verification_carrier: false,
+                approved_carrier: false,
             };
     
             const { data: insertedPerson, error } = await supabase
@@ -199,11 +202,9 @@ export function RegisterUserConductor({
             }
             
             localStorage.setItem("person_id", personId); // Guardamos el ID, no el DNI
-            // Mostrar el Snackbar de éxito
-            setAlertMessage("Usuario registrado con éxito");
-            setAlertType("success");
-            setOpenAlert(true);
-    
+            localStorage.setItem("user_email", formData.email);
+
+
             // Limpiar el formulario
             setFormData({
                 first_name: "",
@@ -220,10 +221,8 @@ export function RegisterUserConductor({
             });
             setCountryCode(""); // Limpiar el código de país
     
-            // Redirigir al login después de un registro exitoso
-            setTimeout(() => {
-                router.push("/carrier_register/information"); 
-            }, 2000);
+            // Redirigir al registro de conductor
+            router.push("/register_conductor/information"); 
     
         } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : "Error desconocido";
@@ -262,7 +261,23 @@ export function RegisterUserConductor({
     const [dniError, setDniError] = useState("");
 
     return (
+        
         <div className={cn("flex flex-col gap-6", className)} {...props}>
+            {loading && (
+            <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/20">
+                <div className="flex flex-col items-center">
+                {/* Animación de puntos */}
+                <div className="flex gap-2 mb-2">
+                    <div className="w-3 h-3 bg-emerald-500 rounded-full animate-bounce [animation-delay:0ms]"></div>
+                    <div className="w-3 h-3 bg-emerald-500 rounded-full animate-bounce [animation-delay:150ms]"></div>
+                    <div className="w-3 h-3 bg-emerald-500 rounded-full animate-bounce [animation-delay:300ms]"></div>
+                </div>
+                {/* Texto de carga */}
+                <span className="text-sm text-white font-medium">Cargando...</span>
+                </div>
+            </div>
+            )}
+
             <Card>
                 <CardHeader>
                     <div className="flex justify-center">
@@ -489,15 +504,16 @@ export function RegisterUserConductor({
                                 </Label>
                                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                                     <DemoContainer components={["DatePicker"]}>
-                                        <DatePicker
-                                            label="Selecciona tu fecha"
-                                            onChange={(date) =>
-                                                setFormData({
-                                                    ...formData,
-                                                    birthdate: date?.format("YYYY-MM-DD") || "",
-                                                })
-                                            }
-                                        />
+                                    <DatePicker
+                                    label="Selecciona tu fecha"
+                                    value={formData.birthdate ? dayjs(formData.birthdate) : null}
+                                    onChange={(date) =>
+                                        setFormData({
+                                        ...formData,
+                                        birthdate: date?.format("YYYY-MM-DD") || "",
+                                        })
+                                    }
+                                    />
                                     </DemoContainer>
                                 </LocalizationProvider>
                             </div>
@@ -549,9 +565,10 @@ export function RegisterUserConductor({
                                     className="w-full py-6 bg-emerald-400 hover:bg-emerald-500 text-white"
                                     disabled={loading}
                                 >
-                                    {loading ? "Registrando..." : "Registrar"}
+                                    Registrar
                                 </Button>
                             </div>
+
                         </div>
                     </form>
                 </CardContent>

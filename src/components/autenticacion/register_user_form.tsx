@@ -26,6 +26,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import { useRouter } from "next/navigation";
 import { Alert, Snackbar } from "@mui/material";
+import dayjs from 'dayjs';
 
 export function RegisterUserForm({
     className,
@@ -217,7 +218,7 @@ export function RegisterUserForm({
             // Redirigir al login después de un registro exitoso
             setTimeout(() => {
                 router.push("/login");
-            }, 2000);
+            }, 500);
     
         } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : "Error desconocido";
@@ -257,6 +258,7 @@ export function RegisterUserForm({
 
     return (
         <div className={cn("flex flex-col gap-6", className)} {...props}>
+            
             <Card>
                 <CardHeader>
                     <div className="flex justify-center">
@@ -483,16 +485,18 @@ export function RegisterUserForm({
                                 </Label>
                                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                                     <DemoContainer components={["DatePicker"]}>
-                                        <DatePicker
-                                            label="Selecciona tu fecha"
-                                            onChange={(date) =>
-                                                setFormData({
-                                                    ...formData,
-                                                    birthdate: date?.format("YYYY-MM-DD") || "",
-                                                })
-                                            }
-                                        />
+                                    <DatePicker
+                                    label="Selecciona tu fecha"
+                                    value={formData.birthdate ? dayjs(formData.birthdate) : null}
+                                    onChange={(date) =>
+                                        setFormData({
+                                        ...formData,
+                                        birthdate: date?.format("YYYY-MM-DD") || "",
+                                        })
+                                    }
+                                    />
                                     </DemoContainer>
+                                    
                                 </LocalizationProvider>
                             </div>
 
