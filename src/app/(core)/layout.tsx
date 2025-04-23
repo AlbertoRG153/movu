@@ -21,6 +21,23 @@ export default function Layout({ children }: { children: ReactNode }) {
         "/register_conductor/information",
         "/register_conductor/driver_license",
         "/register_conductor/vehicle_information",
+        "/customer/settings/cp",
+        "/customer/settings/idioma",
+        "/customer/settings/format",
+        "/customer/settings/about",
+        "/carrier/settings/cp",
+        "/carrier/settings/idioma",
+        "/carrier/settings/format",
+        "/carrier/settings/about",
+        "/customer/support/city",
+        "/customer/support/freight",
+        "/customer/support/problem",
+        "/customer/support/about",
+        "/carrier/support/city",
+        "/carrier/support/freight",
+        "/carrier/support/problem",
+        "/carrier/support/about",
+
     ];
 
     const shouldShowSidebar = !routePatternsWithoutSidebar.some((pattern) =>

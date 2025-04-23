@@ -18,38 +18,48 @@ import Image from "next/image"
 import Rating from '@mui/material/Rating'
 import { Box } from "@mui/material"
 
+interface TravelRequest {
+  id_person: number;
+  id_carrier: number;
+}
+
+interface TripRequest {
+  travel_request?: TravelRequest;
+  id_carrier?: number;
+  id_person?: number;
+}
+
 interface Trip {
   id: number;
   status: {
     name: string;
   } | null;
-  travel_request: {
-    id_person: number;
-  } | null;
+  trip_request?: TripRequest | null;  // Permitir que trip_request sea nulo o indefinido
 }
+
 interface Rating {
   id: number;
-  score_carrier: number;
+  score_carrier?: number;
+  score_person?: number;
   id_trip: number;
-  trip: {
-    id: number;
-    id_carrier: number;
-    status: {
-      name: string;
-    } | null;
-  } | null;
+  trip: Trip | null;  // Permitir que trip sea nulo
 }
 
-
+// Interfaz de entrada para el Rating
 interface RatingEntry {
   score_person?: number;
   score_carrier?: number;
   id_trip: number;
   trip?: {
     id: number;
-    id_carrier: number;
     status?: { name: string };
-  };
+    trip_request?: {
+      id_carrier?: number;
+      travel_request?: {
+        id_person?: number;
+      };
+    };
+  } | null;
 }
 
 interface SidebarProps {
@@ -91,7 +101,8 @@ const [ratingData, setRatingData] = useState<{ rating: number, totalTrips: numbe
                       pathname === '/carrier/trips_history' ||
                       pathname === '/carrier/support' ||
                       pathname === '/carrier/settings' ||
-                      pathname === '/carrier/profile')
+                      pathname === '/carrier/profile' ||
+                      pathname === '/carrier/trip_request')
     }
   }, [pathname])
 
@@ -143,6 +154,7 @@ const [ratingData, setRatingData] = useState<{ rating: number, totalTrips: numbe
   }
 
   const handleLogout = () => {
+    localStorage.removeItem('currentUser');
     localStorage.removeItem("main_view")  // Limpiar localStorage
     router.push("/login")
     onClose()
@@ -197,59 +209,70 @@ const [ratingData, setRatingData] = useState<{ rating: number, totalTrips: numbe
       let ratings: RatingEntry[] = [];
   
       if (isClient) {
-        const { data: tripData, error: tripError } = await supabase
-  .from("trip")
-  .select(`id, status ( name ), travel_request ( id_person )`) as unknown as { data: Trip[]; error: Error | null };
-
-        if (tripError || !tripData) {
-          console.error("Error al obtener trips:", tripError);
-          return;
-        }
-  
-
-        const clientTrips = tripData.filter(
-          (trip) => trip.travel_request?.id_person === userId
-        );
-  
-        totalDeliveredTrips = clientTrips.filter(
-          (trip) => trip.status?.name === "Entregado"
-        ).length;
-  
-        const tripIds = clientTrips.map((trip) => trip.id);
-  
         const { data: ratingDataRes, error: ratingError } = await supabase
           .from("rating")
-          .select("score_person, id_trip");
+          .select(`
+            score_person, id_trip,
+            trip (
+              id,
+              status ( name ),
+              trip_request (
+                travel_request ( id_person )
+              )
+            )
+          `) as unknown as { data: Rating[] | null; error: Error | null };
   
         if (ratingError || !ratingDataRes) {
-          console.error("Error al obtener ratings:", ratingError);
+          console.error("Error al obtener ratings (cliente):", ratingError);
+          setRatingData({ rating: 5, totalTrips: 0 });
           return;
         }
   
-        ratings = ratingDataRes.filter((rating) =>
-          tripIds.includes(rating.id_trip)
-        ) as RatingEntry[];
+        const clientRatings = ratingDataRes.filter(
+          (rating) => rating.trip?.trip_request?.travel_request?.id_person === userId
+        );
+  
+        totalDeliveredTrips = clientRatings.filter(
+          (rating) => rating.trip?.status?.name === "Entregado"
+        ).length;
+  
+        ratings = clientRatings.map((rating) => ({
+          score_person: rating.score_person,
+          id_trip: rating.id_trip,
+          trip: rating.trip,
+        })) as RatingEntry[];
+  
       } else {
         const { data: ratingDataRes, error: ratingError } = await supabase
-        .from("rating")
-        .select(`
-          id, score_carrier, id_trip,
-          trip ( id, id_carrier, status ( name ) )
-        `) as unknown as { data: Rating[] | null; error: Error | null };
+          .from("rating")
+          .select(`
+            score_carrier, id_trip,
+            trip (
+              id,
+              status ( name ),
+              trip_request ( id_carrier )
+            )
+          `) as unknown as { data: Rating[] | null; error: Error | null };
   
         if (ratingError || !ratingDataRes) {
-          console.error("Error al obtener ratings del conductor:", ratingError);
+          console.error("Error al obtener ratings (conductor):", ratingError);
+          setRatingData({ rating: 5, totalTrips: 0 });
           return;
         }
   
-        const ratings = ratingDataRes?.filter(
-          (r) => r.trip?.id_carrier === userId
-        ) || [];
-        
+        const driverRatings = ratingDataRes.filter(
+          (rating) => rating.trip?.trip_request?.id_carrier === userId
+        );
   
-        totalDeliveredTrips = ratings.filter(
-          (r) => r.trip?.status?.name === "Entregado"
+        totalDeliveredTrips = driverRatings.filter(
+          (rating) => rating.trip?.status?.name === "Entregado"
         ).length;
+  
+        ratings = driverRatings.map((rating) => ({
+          score_carrier: rating.score_carrier,
+          id_trip: rating.id_trip,
+          trip: rating.trip,
+        })) as RatingEntry[];
       }
   
       const scoreKey: keyof RatingEntry = isClient ? "score_person" : "score_carrier";
