@@ -1,4 +1,4 @@
-import { SettingsCustomerCarrier } from "@/components/carrier/settings_customer_carrier";
+import { SettingsCustomerCarrier } from "@/components/customer_carrier/settings_customer_carrier";
 
 const SettingsCustomerPage = () => {
   return (
