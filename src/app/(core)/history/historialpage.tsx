@@ -1,5 +1,7 @@
 "use client"
 
+import Link from "next/link"
+
 
 
 interface TripRecord {
@@ -11,7 +13,7 @@ interface TripRecord {
   destination: string
 }
 
-const tripHistory: TripRecord[] = [
+ export const tripHistory: TripRecord[] = [
   {
     id: 1,
     date: "7 feb",
@@ -64,31 +66,38 @@ export default function HistorialClient() {
         </div>
 
         <div className="divide-y divide-gray-800">
-          {tripHistory.map((trip) => (
-            <div key={trip.id} className="p-4 px-2 bg-[#0c2d40] cursor-pointer">
-              <div className="flex justify-between mb-2">
-                <div className="flex items-center gap-2 text-white">
-                  <span className="font-medium">{trip.date},</span>
-                  <span>{trip.time}</span>
-                </div>
-                <span className="font-medium text-white">{trip.amount}</span>
-              </div>
-              <div className="flex flex-col gap-1 text-gray-300">
-                <div className="flex items-center gap-2">
-                  <div className="h-4 w-4 rounded-full border border-gray-300 flex items-center justify-center">
-                    <div className="h-1.5 w-1.5 rounded-full bg-gray-300"></div>
-                  </div>
-                  <span>{trip.origin}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="h-4 w-4 rounded-full border border-gray-300 flex items-center justify-center">
-                    <div className="h-1.5 w-1.5 rounded-full bg-gray-300"></div>
-                  </div>
-                  <span>{trip.destination}</span>
-                </div>
-              </div>
-            </div>
-          ))}
+        {tripHistory.map((trip) => (
+  <Link key={trip.id} href={`/history/${trip.id}`}>
+    <div
+      key={trip.id}
+      className="group p-4 px-2 bg-[#0c2d40] cursor-pointer rounded-xl transition-all duration-300 ease-in-out hover:bg-[#083344] hover:shadow-md hover:scale-[1.02]"
+    >
+      <div className="flex justify-between mb-2">
+        <div className="flex items-center gap-2 text-white">
+          <span className="font-medium">{trip.date},</span>
+          <span>{trip.time}</span>
+        </div>
+        <span className="font-medium text-white">{trip.amount}</span>
+      </div>
+
+      <div className="flex flex-col gap-1 text-gray-300">
+        <div className="flex items-center gap-2">
+          <div className="h-4 w-4 rounded-full border border-gray-300 flex items-center justify-center">
+            <div className="h-1.5 w-1.5 rounded-full bg-gray-300"></div>
+          </div>
+          <span>{trip.origin}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="h-4 w-4 rounded-full border border-gray-300 flex items-center justify-center">
+            <div className="h-1.5 w-1.5 rounded-full bg-gray-300"></div>
+          </div>
+          <span>{trip.destination}</span>
+        </div>
+      </div>
+    </div>
+  </Link>
+))}
+
         </div>
       </div>
 
