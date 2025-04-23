@@ -26,6 +26,7 @@ export default function TripRequestList() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
+    const [carrierId, setCarrierId] = useState<string | null>(null);
     const [alertMessage, setAlertMessage] = useState("");
     const [alertType, setAlertType] = useState<"success" | "error">("success");
     const [openAlert, setOpenAlert] = useState(false);
@@ -41,7 +42,15 @@ export default function TripRequestList() {
         const [lat, lng] = str.split(",").map(Number);
         return [lat, lng];
       };
-
+      useEffect(() => {
+        if (typeof window !== "undefined") {
+            const userData = localStorage.getItem("currentUser");
+            if (userData) {
+                const parsedData = JSON.parse(userData);
+                setCarrierId(parsedData?.id || null);
+            }
+        }
+    }, []);
     // Cargar las solicitudes de Supabase
     useEffect(() => {
         const fetchTripRequests = async () => {
@@ -160,9 +169,11 @@ export default function TripRequestList() {
     };
 
     const handleCancel = () => {
-        router.push("/carrier/main_view");
-      };
-
+        if (typeof window !== "undefined") {
+            router.push("/carrier/main_view");
+        }
+    };
+    
     const handleViewDetails = (request: TripRequest) => {
         setSelectedRequest(request);
         setIsModalOpen(true);
@@ -171,14 +182,7 @@ export default function TripRequestList() {
     const handleSubmitOffer = async (newPrice: number) => {
         if (selectedRequest) {
             try {
-                const finalPrice = newPrice || selectedRequest.price;
-    
-                const carrierId = JSON.parse(localStorage.getItem("currentUser") || "{}")?.id;
-    
-                if (!carrierId) {
-                    throw new Error("No se pudo obtener el ID del conductor");
-                }
-    
+                const finalPrice = newPrice || selectedRequest.price;    
                 const { error: insertError } = await supabase
                     .from("trip_request")
                     .insert({
@@ -224,12 +228,15 @@ export default function TripRequestList() {
                 ) : error ? (
                     <div className="text-center py-8 text-red-500">
                         <p>{error}</p>
-                        <button 
-                            onClick={() => router.refresh()}
-                             className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md"
-                            >
-                            Reintentar
-                        </button>
+                        <button
+                        onClick={() => {
+                         if (typeof window !== "undefined") {
+                          router.refresh();
+                         }
+                          }}
+                           className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md" >
+                              Reintentar
+                            </button>
                     </div>
                 ) : requests.length === 0 ? (
                     <div className="text-center py-8">No hay solicitudes disponibles</div>

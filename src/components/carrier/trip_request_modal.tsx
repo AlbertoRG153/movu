@@ -32,13 +32,6 @@ export default function TripRequestModal({
     
     if (!isOpen) return null;
 
-    // Obtener el ID del carrier desde localStorage
-    const carrierId = JSON.parse(localStorage.getItem("currentUser") || "{}")?.id;
-
-    if (!carrierId) {
-        return <div>No se pudo obtener el ID del conductor</div>;
-    }
-
     // Maneja el envío del formulario
     const handleSubmit = () => {
         onSubmit(offerPrice);
