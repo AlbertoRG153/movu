@@ -229,28 +229,34 @@ const [ratingData, setRatingData] = useState<{ rating: number, totalTrips: numbe
         ratings = ratingDataRes.filter((rating) =>
           tripIds.includes(rating.id_trip)
         ) as RatingEntry[];
-      } else {
-        const { data: ratingDataRes, error: ratingError } = await supabase
-        .from("rating")
-        .select(`
-          id, score_carrier, id_trip,
-          trip ( id, id_carrier, status ( name ) )
-        `) as unknown as { data: Rating[] | null; error: Error | null };
-  
-        if (ratingError || !ratingDataRes) {
-          console.error("Error al obtener ratings del conductor:", ratingError);
-          return;
-        }
-  
-        const ratings = ratingDataRes?.filter(
-          (r) => r.trip?.id_carrier === userId
-        ) || [];
+        } else {
+          const { data: ratingDataRes, error: ratingError } = await supabase
+          .from("rating")
+          .select(`
+            id, score_carrier, id_trip,
+            trip ( id, id_carrier, status ( name ) )
+          `) as unknown as { data: Rating[] | null; error: Error | null };
         
+          if (ratingError || !ratingDataRes) {
+            console.error("Error al obtener ratings del conductor:", ratingError);
+            return;
+          }
   
-        totalDeliveredTrips = ratings.filter(
-          (r) => r.trip?.status?.name === "Entregado"
-        ).length;
-      }
+          ratings = ratingDataRes?.filter(
+            (r) => r.trip?.id_carrier === userId
+          ).map(rating => {
+            // Convertir de Rating a RatingEntry
+            return {
+              ...rating,
+              trip: rating.trip || undefined
+            } as unknown as RatingEntry;
+          }) || [];
+          
+          // Usando la misma variable ratings que ahora tiene el formato correcto
+          totalDeliveredTrips = ratings.filter(
+            (r) => r.trip?.status?.name === "Entregado"
+          ).length;
+        }
   
       const scoreKey: keyof RatingEntry = isClient ? "score_person" : "score_carrier";
   
