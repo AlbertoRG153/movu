@@ -18,7 +18,7 @@ export default function RouteModal({ isOpen, onClose, coordinates }: RouteModalP
 
     useEffect(() => {
         if (typeof window === "undefined" || !isOpen || !mapRef.current) return;
-
+    
         import("leaflet").then((L) => {
             import("leaflet-routing-machine").then(() => {
                 if (!leafletMap.current) {
@@ -29,15 +29,15 @@ export default function RouteModal({ isOpen, onClose, coordinates }: RouteModalP
                 } else {
                     leafletMap.current.setView(coordinates.pickup, 13);
                 }
-
+    
                 leafletMap.current.eachLayer((layer: L.Layer) => {
                     if (!(layer instanceof L.TileLayer)) {
                         leafletMap.current?.removeLayer(layer);
                     }
                 });
-
+    
                 if ("Routing" in L) {
-                    L.Routing.control({
+                     L.Routing.control({
                         waypoints: [
                             L.latLng(coordinates.pickup[0], coordinates.pickup[1]),
                             L.latLng(coordinates.destination[0], coordinates.destination[1]),
@@ -50,13 +50,21 @@ export default function RouteModal({ isOpen, onClose, coordinates }: RouteModalP
                             missingRouteTolerance: 10
                         },
                     }).addTo(leafletMap.current!);
-                } else {
-                    console.error("Leaflet Routing Machine no está disponible en L.");
+    
+                    //Eliminar el panel de instrucciones que Leaflet genera automáticamente
+                    setTimeout(() => {
+                        const routeContainer = document.querySelector(".leaflet-routing-container");
+                        if (routeContainer) {
+                            routeContainer.remove();
+                        }
+                    }, 500); // Esperar medio segundo para asegurar que se haya renderizado antes de eliminarlo
                 }
-            }).catch(err => console.error("Error al importar leaflet-routing-machine:", err));
-        }).catch(err => console.error("Error al importar leaflet:", err));
-
+            });
+        });
+    
     }, [isOpen, coordinates]);
+    
+  
 
     if (!isOpen) return null;
 

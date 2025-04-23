@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import TripRequestCard from "./trip_request_card";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import { useSearchParams } from "next/navigation";
@@ -13,8 +13,8 @@ interface TripRequest {
   rating: number;
   reviews: number;
 }
-
-interface TripRequestResponse {
+/**
+ * interface TripRequestResponse {
   id: string;
   newPrice: number;
   id_carrier: {
@@ -32,9 +32,17 @@ interface TripRequestResponse {
 
 interface Rating {
   score_carrier: number | null;
+}*/
+
+export default function TripRequestListWrapper() {
+  return (
+    <Suspense fallback={<p>Cargando...</p>}>
+      <TripRequestList />
+    </Suspense>
+  );
 }
 
-export default function TripRequestList() {
+function TripRequestList() {
   const [requests, setRequests] = useState<TripRequest[]>([]);
   const searchParams = useSearchParams();
   const travelRequestId = searchParams.get("travelRequestId");
@@ -71,39 +79,18 @@ export default function TripRequestList() {
       }
 
       const requestsWithRatings = await Promise.all(
-        (tripRequests as TripRequestResponse[]).map(async (item) => {
-          const carrier = item.id_carrier && item.id_carrier[0];
-          const person = carrier?.id_person ? carrier.id_person[0] : undefined;
-          const vehicle = carrier?.vehicle ? carrier.vehicle[0] : undefined;
-
-          const { data: ratings, error: ratingError } = await supabase
-            .from("rating")
-            .select("score_carrier")
-            .eq("id_trip.id_carrier", carrier?.id);
-
-          if (ratingError) {
-            console.error("Error fetching ratings:", JSON.stringify(ratingError, null, 2));
-            return {
-              id: item.id,
-              price: item.newPrice,
-              name: `${person?.first_name ?? "N/A"} ${person?.first_surname ?? ""}`,
-              plate: vehicle?.plate_number ?? "Desconocido",
-              rating: 0,
-              reviews: 0,
-            };
-          }
-
-          const validRatings = (ratings as Rating[]).filter((r) => r.score_carrier !== null);
-          const total = validRatings.reduce((sum, r) => sum + (r.score_carrier ?? 0), 0);
-          const avgRating = validRatings.length > 0 ? total / validRatings.length : 0;
+        tripRequests.map(async (item) => {
+          const carrier = item.id_carrier?.[0];
+          const person = carrier?.id_person?.[0];
+          const vehicle = carrier?.vehicle?.[0];
 
           return {
             id: item.id,
             price: item.newPrice,
-            name: `${person?.first_name} ${person?.first_surname}`,
+            name: `${person?.first_name ?? "N/A"} ${person?.first_surname ?? ""}`,
             plate: vehicle?.plate_number ?? "Desconocido",
-            rating: avgRating,
-            reviews: ratings ? ratings.length : 0,
+            rating: 0,
+            reviews: 0,
           };
         })
       );
