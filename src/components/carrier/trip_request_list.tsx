@@ -19,6 +19,11 @@ interface TripRequest {
     service_type: string;
 }
 
+interface User {
+    first_name: string;
+    first_surname: string;
+  }
+
 export default function TripRequestList() {
     const [requests, setRequests] = useState<TripRequest[]>([]);
     const [loading, setLoading] = useState(true);
