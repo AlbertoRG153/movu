@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus } from "lucide-react";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
+import { Alert, Snackbar } from "@mui/material";
 
 import {
     Select,
@@ -32,27 +34,73 @@ export default function ShippingForm() {
     const [volume, setVolume] = useState("");
     const [pesoCarga, setPesoCarga] = useState("Kg"); // Default to Kg
     const [showMap, setShowMap] = useState(false);
+    const router = useRouter();
+    const [alertMessage, setAlertMessage] = useState("");
+    const [alertType, setAlertType] = useState<"success" | "error">("success");
+    const [openAlert, setOpenAlert] = useState(false);
+    const handleCloseAlert = () => {
+    setOpenAlert(false);};
     const MapModal = dynamic(() => import("@/components/map").then(mod => mod.MapModal), {
         ssr: false,
       });
       const [pickupDisplay, setPickupDisplay] = useState<string>("")
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        // Handle form submission logic here
-        console.log({
-            destination,
-            pickup,
-            pickupTime,
-            description,
-            vehicleType,
-            rate,
-            image,
-            serviceType,
-            weight: serviceType === "flete" ? weight : null,
-            volume: serviceType === "flete" ? volume : null, // Solo incluye peso y volumen si es flete
-            pesoCarga: serviceType === "flete" ? pesoCarga : null, // Solo incluye tipo de peso si es flete
-        });
-    };
+
+      const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();  
+        const userData = JSON.parse(localStorage.getItem("main_view") || "{}");
+        const userId = userData.userId;
+        const parsedWeight = parseFloat(weight);
+        const parsedVolume = parseFloat(volume);
+      
+        const serviceTypeMap: Record<string, string> = {
+          flete: "7dcdd948-75bc-46b5-bcec-6e47e827b24b",
+          mudanza: "b6da190b-44bb-4331-b499-1af46ebce072"
+        };
+      
+        const { data, error } = await supabase.from("travel_request").insert([
+          {
+            origin_place: pickup,
+            destination_place: destination,
+            price: rate,
+            date: new Date(pickupTime).toISOString(), // Ahora asi
+            id_person: userId,
+            id_vehicle_type: vehicleType,
+            weight: serviceType === "flete" ? parsedWeight : null,
+            volume: serviceType === "flete" ? parsedVolume : null,
+            description: description || null,
+            freight_img: image || null,
+            id_service_type: serviceTypeMap[serviceType]
+          }
+        ]);
+        if (error) {
+            console.error("Error al guardar la solicitud:", error); 
+            setAlertMessage("Hubo un error al enviar la solicitud");
+            setAlertType("error");
+            setOpenAlert(true);
+          } else {
+            console.log("Solicitud guardada correctamente:", data);
+           // Limpiar campos
+            setPickup("");
+            setDestination("");
+            setPickupTime("");
+            setDescription("");
+            setVehicleType("");
+            setRate("");
+            setImage(null);
+            setServiceType("");
+            setWeight("");
+            setVolume("");
+            setPesoCarga("");
+          
+            setAlertMessage("Solicitud enviada con éxito");
+            setAlertType("success");
+            setOpenAlert(true);
+    
+            setTimeout(() => {
+              router.push("/customer/main_view");
+            }, 2000); // 2 segundos para que el usuario vea el mensaje
+          }
+      };
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -338,6 +386,7 @@ export default function ShippingForm() {
                     </div>
                 </div>
 
+
                 {/* Image Upload */}
                 <div>
                     <label className="text-sm text-gray-700 mb-1 block">
@@ -415,6 +464,19 @@ export default function ShippingForm() {
                 console.log("Distancia (km):", distanceKm);
                                      }}
             />
+            <Snackbar
+             open={openAlert}
+             autoHideDuration={6000}
+             onClose={handleCloseAlert}
+             anchorOrigin={{ vertical: "top", horizontal: "center" }}
+              ><Alert
+                  onClose={handleCloseAlert}
+                  severity={alertType}
+                  sx={{ width: "100%" }}
+                  >
+                 {alertMessage}
+             </Alert>
+            </Snackbar>
         </div>
     );
 }

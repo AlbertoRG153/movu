@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/supabaseClient';
 import { Alert, Snackbar } from '@mui/material';
+import { Check } from 'lucide-react';
 
 export function InformationCarrier() {
   const router = useRouter();
@@ -138,6 +139,7 @@ export function InformationCarrier() {
       const { error: carrierError } = await supabase
         .from('carrier')
         .insert({
+          id: userId,
           id_person: userId,
           license: licenseNumber,
           license_expiration: licenseExpiration,
@@ -171,7 +173,14 @@ export function InformationCarrier() {
       setAlertType('success');
       setAlertMessage('¡Datos guardados correctamente!');
       setOpenAlert(true);
-      setTimeout(() => router.push('/customer/profile'), 3000);
+      setTimeout(() => {
+        const returnPath = localStorage.getItem('redirect_back_to')
+
+        if (returnPath) {
+          localStorage.removeItem('redirect_back_to') 
+          router.push(returnPath)
+        }
+      }, 3000);
     } catch (error: unknown) {
       if (error instanceof Error) {
         console.error(error);
@@ -188,8 +197,15 @@ export function InformationCarrier() {
 
   const handleNextDriverLicense = () => router.push('/carrier_register/driver_license');
   const handleNextVehicleInformation = () => router.push('/carrier_register/vehicle_information');
-  const handleClose = () => router.push('/customer/profile');
-  const handleCloseAlert = () => setOpenAlert(false);
+ 
+  const handleClose = () => {
+    const returnPath = localStorage.getItem('redirect_back_to')
+    if (returnPath) {
+      localStorage.removeItem('redirect_back_to')
+      router.push(returnPath)
+    } 
+  }
+    const handleCloseAlert = () => setOpenAlert(false);
 
   return (
     <div className="min-h-screen flex flex-col relative">
@@ -205,18 +221,20 @@ export function InformationCarrier() {
           <form onSubmit={handleSubmit} className="flex flex-col gap-4 items-center">
             <button
               type="button"
-              className="w-11/12 max-w-sm py-3 bg-white text-black rounded-xl hover:bg-gray-200"
+              className="w-11/12 max-w-sm py-3 bg-white text-black rounded-xl hover:bg-gray-200 flex items-center justify-between px-4"
               onClick={handleNextDriverLicense}
             >
-              Licencia de conducir
+              <span>Licencia de conducir</span>
+              {driverLicenseCompleted && <Check className="text-green-500 w-5 h-5" />}
             </button>
 
             <button
               type="button"
-              className="w-11/12 max-w-sm py-3 bg-white text-black rounded-xl hover:bg-gray-200"
+              className="w-11/12 max-w-sm py-3 bg-white text-black rounded-xl hover:bg-gray-200 flex items-center justify-between px-4"
               onClick={handleNextVehicleInformation}
             >
-              Información acerca del vehículo
+              <span>Información acerca del vehículo</span>
+              {vehicleInfoCompleted && <Check className="text-green-500 w-5 h-5" />}
             </button>
 
             <button

@@ -26,6 +26,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import { useRouter } from "next/navigation";
 import { Alert, Snackbar } from "@mui/material";
+import dayjs from "dayjs";
 
 export function RegisterUserForm({
     className,
@@ -56,7 +57,6 @@ export function RegisterUserForm({
     const [alertType, setAlertType] = useState<"success" | "error">("success");
     const [alertMessage, setAlertMessage] = useState("");
 
-
     type PasswordStrength = "Nada segura" | "Segura" | "Muy segura";
 
     const getPasswordStrength = (pwd: string): PasswordStrength => {
@@ -71,7 +71,6 @@ export function RegisterUserForm({
         if (score <= 4) return "Segura";
         return "Muy segura";
     };
-
 
     useEffect(() => {
         async function fetchCities() {
@@ -105,10 +104,14 @@ export function RegisterUserForm({
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        
+
         // Verificar campos vacíos
         for (const key in formData) {
-            if ((key !== "second_name" && key !== "second_surname") && !formData[key as keyof typeof formData]) {
+            if (
+                key !== "second_name" &&
+                key !== "second_surname" &&
+                !formData[key as keyof typeof formData]
+            ) {
                 setAlertMessage("Todos los campos son obligatorios.");
                 setAlertType("error");
                 setOpenAlert(true);
@@ -116,7 +119,7 @@ export function RegisterUserForm({
                 return;
             }
         }
-    
+
         // Verificar si el DNI, teléfono o email ya existen
         try {
             const { data: existingDni } = await supabase
@@ -124,19 +127,19 @@ export function RegisterUserForm({
                 .select("dni")
                 .eq("dni", formData.dni)
                 .maybeSingle();
-    
+
             const { data: existingPhone } = await supabase
                 .from("person")
                 .select("phone")
                 .eq("phone", `${countryCode}${formData.phone}`)
                 .maybeSingle();
-    
+
             const { data: existingEmail } = await supabase
                 .from("person")
                 .select("email")
                 .eq("email", formData.email)
                 .maybeSingle();
-    
+
             // Verificar si ya existen registros con el DNI, teléfono o email
             if (existingDni) {
                 setAlertMessage("El DNI ya está registrado.");
@@ -145,7 +148,7 @@ export function RegisterUserForm({
                 setLoading(false);
                 return;
             }
-    
+
             if (existingPhone) {
                 setAlertMessage("El número de teléfono ya está registrado.");
                 setAlertType("error");
@@ -153,7 +156,7 @@ export function RegisterUserForm({
                 setLoading(false);
                 return;
             }
-    
+
             if (existingEmail) {
                 setAlertMessage("El correo electrónico ya está registrado.");
                 setAlertType("error");
@@ -161,20 +164,20 @@ export function RegisterUserForm({
                 setLoading(false);
                 return;
             }
-    
+
             // Si llegamos aquí, es porque no existen conflictos, continuamos con el registro
-            const { data: hashedPassword, error: hashError } = await supabase.rpc(
-                "hash_password",
-                { password: formData.password }
-            );
-    
+            const { data: hashedPassword, error: hashError } =
+                await supabase.rpc("hash_password", {
+                    password: formData.password,
+                });
+
             if (hashError) {
                 throw hashError;
             }
-    
+
             // Concatenar código de país y número de teléfono
             const fullPhone = `${countryCode}${formData.phone}`;
-    
+
             // Crear un nuevo objeto con la contraseña encriptada y el teléfono concatenado
             const secureFormData = {
                 ...formData,
@@ -185,19 +188,20 @@ export function RegisterUserForm({
                 verification_carrier: false,
                 approved_carrier: false,
             };
-    
-            const { error } = await supabase.from("person").insert([secureFormData]);
-    
+
+            const { error } = await supabase
+                .from("person")
+                .insert([secureFormData]);
+
             if (error) {
                 throw error;
             }
-    
-    
+
             // Mostrar el Snackbar de éxito
             setAlertMessage("Usuario registrado con éxito");
             setAlertType("success");
             setOpenAlert(true);
-    
+
             // Limpiar el formulario
             setFormData({
                 first_name: "",
@@ -213,14 +217,14 @@ export function RegisterUserForm({
                 phone: "",
             });
             setCountryCode(""); // Limpiar el código de país
-    
+
             // Redirigir al login después de un registro exitoso
             setTimeout(() => {
                 router.push("/login");
-            }, 2000);
-    
+            }, 500);
         } catch (error: unknown) {
-            const errorMessage = error instanceof Error ? error.message : "Error desconocido";
+            const errorMessage =
+                error instanceof Error ? error.message : "Error desconocido";
             setAlertMessage("Error al registrar usuario: " + errorMessage);
             setAlertType("error");
             setOpenAlert(true);
@@ -228,7 +232,6 @@ export function RegisterUserForm({
             setLoading(false);
         }
     };
-    
 
     const validatePassword = (pwd: string): string[] => {
         const issues: string[] = [];
@@ -246,7 +249,9 @@ export function RegisterUserForm({
             issues.push("Debe contener al menos un número");
         }
         if (!/[@¿?=()\/&%$·\"!\-+*._]/.test(pwd)) {
-            issues.push("Debe contener al menos un carácter especial (@¿?=()/&% $·\"!-+*._)");
+            issues.push(
+                'Debe contener al menos un carácter especial (@¿?=()/&% $·"!-+*._)'
+            );
         }
 
         return issues;
@@ -340,13 +345,18 @@ export function RegisterUserForm({
                                     onChange={(e) => {
                                         const value = e.target.value;
                                         if (/^\d{0,13}$/.test(value)) {
-                                            setFormData({ ...formData, dni: value });
+                                            setFormData({
+                                                ...formData,
+                                                dni: value,
+                                            });
                                             setDniError(""); // Limpiar error si está escribiendo bien
                                         }
                                     }}
                                     onBlur={() => {
                                         if (formData.dni.length !== 13) {
-                                            setDniError("El DNI debe tener exactamente 13 dígitos.");
+                                            setDniError(
+                                                "El DNI debe tener exactamente 13 dígitos."
+                                            );
                                             setTimeout(() => {
                                                 setDniError("");
                                             }, 3000);
@@ -355,7 +365,11 @@ export function RegisterUserForm({
                                         }
                                     }}
                                 />
-                                {dniError && <p className="text-red-500 text-sm">{dniError}</p>}
+                                {dniError && (
+                                    <p className="text-red-500 text-sm">
+                                        {dniError}
+                                    </p>
+                                )}
                             </div>
 
                             <div className="grid gap-2">
@@ -366,11 +380,15 @@ export function RegisterUserForm({
                                     <select
                                         id="countryCode"
                                         value={countryCode} // Aquí usamos el estado separado para countryCode
-                                        onChange={(e) => setCountryCode(e.target.value)} // Actualizamos solo el código de país
+                                        onChange={(e) =>
+                                            setCountryCode(e.target.value)
+                                        } // Actualizamos solo el código de país
                                         className="border rounded-md px-2 py-1 w-3/7"
                                     >
                                         <option value=""> </option>
-                                        <option value="+504">+504 Honduras</option>
+                                        <option value="+504">
+                                            +504 Honduras
+                                        </option>
                                         {/* Otros países */}
                                     </select>
 
@@ -382,7 +400,10 @@ export function RegisterUserForm({
                                         onChange={(e) => {
                                             const value = e.target.value;
                                             if (/^\d*$/.test(value)) {
-                                                setFormData({ ...formData, phone: value });
+                                                setFormData({
+                                                    ...formData,
+                                                    phone: value,
+                                                });
                                             }
                                         }}
                                         placeholder="Número"
@@ -411,13 +432,17 @@ export function RegisterUserForm({
                                     <CircleHelp
                                         size={16}
                                         className="absolute right-3 top-1/6 -translate-y-1/2 text-muted-foreground cursor-pointer"
-                                        onClick={() => setShowTooltip(!showTooltip)}
+                                        onClick={() =>
+                                            setShowTooltip(!showTooltip)
+                                        }
                                     />
                                 </Label>
                                 <div className="relative">
                                     <Input
                                         id="password"
-                                        type={showPassword ? "text" : "password"} // Cambiar tipo de campo
+                                        type={
+                                            showPassword ? "text" : "password"
+                                        } // Cambiar tipo de campo
                                         value={formData.password}
                                         onChange={handleChangePassword} // Usar handleChangePassword
                                         required
@@ -426,9 +451,16 @@ export function RegisterUserForm({
                                     <button
                                         type="button"
                                         className="absolute right-3 top-1/2 transform -translate-y-1/2"
-                                        onClick={() => setShowPassword(!showPassword)} // Alternar el estado
+                                        onClick={() =>
+                                            setShowPassword(!showPassword)
+                                        } // Alternar el estado
                                     >
-                                        {showPassword ? <EyeOff size={17} /> : <Eye size={17} />} {/* Mostrar el icono adecuado */}
+                                        {showPassword ? (
+                                            <EyeOff size={17} />
+                                        ) : (
+                                            <Eye size={17} />
+                                        )}{" "}
+                                        {/* Mostrar el icono adecuado */}
                                     </button>
                                 </div>
 
@@ -436,22 +468,35 @@ export function RegisterUserForm({
                                     <div className="absolute top-0 left-0 right-0 mt-2 z-10 w-full bg-white border rounded-lg shadow-md p-4 text-sm text-gray-800">
                                         <div className="flex justify-end items-end ">
                                             <button
-                                                onClick={() => setShowTooltip(false)}
+                                                onClick={() =>
+                                                    setShowTooltip(false)
+                                                }
                                                 className="text-gray-500 hover:text-gray-800 "
                                             >
-                                                <span className="text-xl">×</span>
+                                                <span className="text-xl">
+                                                    ×
+                                                </span>
                                             </button>
                                         </div>
-                                        <p className="font-semibold mb-2">La contraseña debe contener:</p>
+                                        <p className="font-semibold mb-2">
+                                            La contraseña debe contener:
+                                        </p>
                                         <ul className="list-disc pl-5 space-y-1">
                                             {passwordIssues.length === 0 ? (
-                                                <li className="text-green-600">Todo en orden</li>
+                                                <li className="text-green-600">
+                                                    Todo en orden
+                                                </li>
                                             ) : (
-                                                passwordIssues.map((issue, i) => (
-                                                    <li key={i} className="text-red-500">
-                                                        {issue}
-                                                    </li>
-                                                ))
+                                                passwordIssues.map(
+                                                    (issue, i) => (
+                                                        <li
+                                                            key={i}
+                                                            className="text-red-500"
+                                                        >
+                                                            {issue}
+                                                        </li>
+                                                    )
+                                                )
                                             )}
                                         </ul>
                                     </div>
@@ -461,16 +506,25 @@ export function RegisterUserForm({
                             {formData.password.length > 0 && (
                                 <div className="mt-2">
                                     <div className="text-sm mb-1">
-                                        Seguridad: <strong>{getPasswordStrength(formData.password)}</strong>
+                                        Seguridad:{" "}
+                                        <strong>
+                                            {getPasswordStrength(
+                                                formData.password
+                                            )}
+                                        </strong>
                                     </div>
                                     <div className="w-full h-2 rounded bg-gray-200 overflow-hidden">
                                         <div
                                             className={`h-full rounded transition-all duration-300 ${
-                                                getPasswordStrength(formData.password) === "Muy segura"
-                                                ? "bg-green-500 w-full"
-                                                : getPasswordStrength(formData.password) === "Segura"
-                                                ? "bg-yellow-500 w-2/3"
-                                                : "bg-red-500 w-1/3"
+                                                getPasswordStrength(
+                                                    formData.password
+                                                ) === "Muy segura"
+                                                    ? "bg-green-500 w-full"
+                                                    : getPasswordStrength(
+                                                          formData.password
+                                                      ) === "Segura"
+                                                    ? "bg-yellow-500 w-2/3"
+                                                    : "bg-red-500 w-1/3"
                                             }`}
                                         />
                                     </div>
@@ -481,14 +535,24 @@ export function RegisterUserForm({
                                 <Label>
                                     <Calendar size={15} /> Fecha de nacimiento
                                 </Label>
-                                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                <LocalizationProvider
+                                    dateAdapter={AdapterDayjs}
+                                >
                                     <DemoContainer components={["DatePicker"]}>
                                         <DatePicker
                                             label="Selecciona tu fecha"
+                                            value={
+                                                formData.birthdate
+                                                    ? dayjs(formData.birthdate)
+                                                    : null
+                                            }
                                             onChange={(date) =>
                                                 setFormData({
                                                     ...formData,
-                                                    birthdate: date?.format("YYYY-MM-DD") || "",
+                                                    birthdate:
+                                                        date?.format(
+                                                            "YYYY-MM-DD"
+                                                        ) || "",
                                                 })
                                             }
                                         />
@@ -511,7 +575,9 @@ export function RegisterUserForm({
                                     <option value="">Selecciona género</option>
                                     <option value="Masculino">Masculino</option>
                                     <option value="Femenino">Femenino</option>
-                                    <option value="Prefiero no decirlo">Prefiero no decirlo</option>
+                                    <option value="Prefiero no decirlo">
+                                        Prefiero no decirlo
+                                    </option>
                                 </select>
                             </div>
 
@@ -527,7 +593,9 @@ export function RegisterUserForm({
                                     className="border p-2 rounded-md"
                                     required
                                 >
-                                    <option value="">Selecciona una ciudad</option>
+                                    <option value="">
+                                        Selecciona una ciudad
+                                    </option>
                                     {cities.map((city) => (
                                         <option key={city.id} value={city.id}>
                                             {city.name}

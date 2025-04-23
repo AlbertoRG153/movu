@@ -109,13 +109,6 @@ export default function DriverLicenseAndSelfiePage() {
     setLocalStorageWithExpiry('selfiePreview', selfiePreview!, 24);
     setLocalStorageWithExpiry('driverLicenseCompleted', 'true', 24);
   
-    // Mostrar datos guardados en consola
-    console.log("✅ Datos guardados en localStorage con expiración de 24 horas:");
-    console.log("licenseNumber:", licenseNumber);
-    console.log("licenseExpiration:", licenseExpiration);
-    console.log("selfiePreview (base64):", selfiePreview?.slice(0, 50) + "..."); // Mostrar solo parte de la imagen
-    console.log("driverLicenseCompleted: true");
-  
     router.push("/carrier_register/information");
   };
   
