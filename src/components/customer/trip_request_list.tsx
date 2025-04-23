@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import TripRequestCard from "./trip_request_card";
 import { supabase } from "@/lib/supabase/supabaseClient";
-import { useSearchParams } from "next/navigation"; // Import to get URL parameters
+import { useSearchParams } from "next/navigation";
 
 interface TripRequest {
   id: string;
@@ -14,10 +14,30 @@ interface TripRequest {
   reviews: number;
 }
 
+interface TripRequestResponse {
+  id: string;
+  newPrice: number;
+  id_carrier: {
+    id: string;
+    id_person: {
+      first_name: string;
+      first_surname: string;
+      profile_img: string;
+    }[];
+    vehicle: {
+      plate_number: string;
+    }[];
+  }[];
+}
+
+interface Rating {
+  score_carrier: number | null;
+}
+
 export default function TripRequestList() {
   const [requests, setRequests] = useState<TripRequest[]>([]);
   const searchParams = useSearchParams();
-  const travelRequestId = searchParams.get('travelRequestId'); // Get travel request ID from URL
+  const travelRequestId = searchParams.get("travelRequestId");
 
   useEffect(() => {
     const fetchRequests = async () => {
@@ -26,7 +46,6 @@ export default function TripRequestList() {
         return;
       }
 
-      // Fetch only trip requests for the specific travel request
       const { data: tripRequests, error: tripError } = await supabase
         .from("trip_request")
         .select(`
@@ -44,49 +63,45 @@ export default function TripRequestList() {
             )
           )
         `)
-        .eq('id_travel_request', travelRequestId); // Filter by travel request ID
+        .eq("id_travel_request", travelRequestId);
 
-      if (tripError) {
+      if (tripError || !tripRequests) {
         console.error("Error fetching trip requests:", JSON.stringify(tripError, null, 2));
         return;
       }
 
-      console.log("Fetched trip requests:", tripRequests);
-
-      // Procesamos cada solicitud para obtener las calificaciones
       const requestsWithRatings = await Promise.all(
-        tripRequests.map(async (item: any) => {
-          // Obtener calificaciones para este transportista
+        (tripRequests as TripRequestResponse[]).map(async (item) => {
+          const carrier = item.id_carrier && item.id_carrier[0];
+          const person = carrier?.id_person ? carrier.id_person[0] : undefined;
+          const vehicle = carrier?.vehicle ? carrier.vehicle[0] : undefined;
+
           const { data: ratings, error: ratingError } = await supabase
             .from("rating")
             .select("score_carrier")
-            .eq("id_trip.id_carrier", item.id_carrier.id);
+            .eq("id_trip.id_carrier", carrier?.id);
 
           if (ratingError) {
             console.error("Error fetching ratings:", JSON.stringify(ratingError, null, 2));
             return {
               id: item.id,
               price: item.newPrice,
-              name: `${item.id_carrier.id_person.first_name} ${item.id_carrier.id_person.first_surname}`,
-              plate: item.id_carrier.vehicle.plate_number,
-              rating: 0, // Valor predeterminado si hay error
-              reviews: 0, // Valor predeterminado si hay error
+              name: `${person?.first_name ?? "N/A"} ${person?.first_surname ?? ""}`,
+              plate: vehicle?.plate_number ?? "Desconocido",
+              rating: 0,
+              reviews: 0,
             };
           }
 
-          // Calcular promedio de calificaciones
-          let avgRating = 0;
-          if (ratings && ratings.length > 0) {
-            const validRatings = ratings.filter(r => r.score_carrier !== null);
-            const total = validRatings.reduce((sum, r) => sum + Number(r.score_carrier), 0);
-            avgRating = validRatings.length > 0 ? total / validRatings.length : 0;
-          }
+          const validRatings = (ratings as Rating[]).filter((r) => r.score_carrier !== null);
+          const total = validRatings.reduce((sum, r) => sum + (r.score_carrier ?? 0), 0);
+          const avgRating = validRatings.length > 0 ? total / validRatings.length : 0;
 
           return {
             id: item.id,
             price: item.newPrice,
-            name: `${item.id_carrier.id_person.first_name} ${item.id_carrier.id_person.first_surname}`,
-            plate: item.id_carrier.vehicle.plate_number,
+            name: `${person?.first_name} ${person?.first_surname}`,
+            plate: vehicle?.plate_number ?? "Desconocido",
             rating: avgRating,
             reviews: ratings ? ratings.length : 0,
           };
@@ -96,22 +111,22 @@ export default function TripRequestList() {
       setRequests(requestsWithRatings);
     };
 
-    fetchRequests();
+    if (travelRequestId) {
+      fetchRequests();
+    }
   }, [travelRequestId]);
 
   const handleAccept = async (id: string) => {
-    // Update the trip_request to mark it as accepted
     const { error } = await supabase
       .from("trip_request")
       .update({ acepto: true })
-      .eq('id', id);
-    
+      .eq("id", id);
+
     if (error) {
       console.error("Error accepting trip request:", error);
       return;
     }
 
-    // Remove the accepted request from the list
     setRequests((prev) => prev.filter((r) => r.id !== id));
   };
 
@@ -121,7 +136,6 @@ export default function TripRequestList() {
 
   const handleCancel = () => {
     console.log("Cancelled");
-    // Add navigation back or other cancel logic
   };
 
   return (
