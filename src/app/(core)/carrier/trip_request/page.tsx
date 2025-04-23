@@ -1,3 +1,5 @@
+"use client";
+
 import TripRequestList from "@/components/carrier/trip_request_list";
 
 export default function TripRequestsPage() {
