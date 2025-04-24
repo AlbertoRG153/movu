@@ -1,3 +1,5 @@
+"use client";
+
 import TripRequestList from "@/components/customer/trip_request_list";
 
 export default function TripRequestsPage() {

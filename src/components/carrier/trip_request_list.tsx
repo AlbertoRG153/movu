@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import TripRequestCard from "./trip_request_card";
 import TripRequestModal from "./trip_request_modal";
-
+import { useRouter } from "next/navigation";
+import { Alert, Snackbar } from "@mui/material";
 
 interface TripRequest {
     id: string;
@@ -14,21 +15,42 @@ interface TripRequest {
     reviews: number;
     origin: string;
     destination: string;
+    origin_place: string;
+    destination_place: string;
     description: string;
     date: string;
     service_type: string;
-}
-
+  }
 export default function TripRequestList() {
     const [requests, setRequests] = useState<TripRequest[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const router = useRouter();
+    const [carrierId, setCarrierId] = useState<string | null>(null);
+    const [alertMessage, setAlertMessage] = useState("");
+    const [alertType, setAlertType] = useState<"success" | "error">("success");
+    const [openAlert, setOpenAlert] = useState(false);
+    const handleCloseAlert = () => {
+    setOpenAlert(false);};
+
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedRequest, setSelectedRequest] = useState<TripRequest | null>(
         null
     );
-
+    const parseCoords = (str: string): [number, number] => {
+        const [lat, lng] = str.split(",").map(Number);
+        return [lat, lng];
+      };
+      useEffect(() => {
+        if (typeof window !== "undefined") {
+            const userData = localStorage.getItem("currentUser");
+            if (userData) {
+                const parsedData = JSON.parse(userData);
+                setCarrierId(parsedData?.id || null);
+            }
+        }
+    }, []);
     // Cargar las solicitudes de Supabase
     useEffect(() => {
         const fetchTripRequests = async () => {
@@ -40,7 +62,6 @@ export default function TripRequestList() {
                     throw new Error("La conexión a Supabase no está disponible");
                 }
                 
-                // Simplificamos la consulta para evitar problemas con relaciones
                 const { data: tripData, error: tripError } = await supabase
   .from('travel_request')
   .select(`
@@ -51,10 +72,7 @@ export default function TripRequestList() {
     )
   `)
   .order('date', { ascending: false });
-
-
-
-                
+               
                 if (tripError) {
                     console.error("Error de Supabase:", tripError);
                     throw new Error(tripError.message);
@@ -66,27 +84,21 @@ export default function TripRequestList() {
                     
                     // Transformar los datos al formato que espera el componente
                     const formattedRequests = tripData.map(trip => {
-                        // Extraer las coordenadas para origen y destino
-                        const originCoords = trip.origin_place?.split(',') || [];
-                        const destCoords = trip.destination_place?.split(',') || [];
-                        
                         return {
-                            id: trip.id,
-                            name: trip.person ? `${trip.person.first_name} ${trip.person.first_surname}` : "Usuario",
-                            price: trip.price || 0,
-                            rating: 0, // Valor por defecto
-                            reviews: 0, // Valor por defecto
-                            origin: originCoords.length >= 2 && originCoords[0] && originCoords[1]
-                            ? `${originCoords[0].slice(0, 6)}, ${originCoords[1].slice(0, 6)}`
-                            : "No especificado",
-                          destination: destCoords.length >= 2 && destCoords[0] && destCoords[1]
-                            ? `${destCoords[0].slice(0, 6)}, ${destCoords[1].slice(0, 6)}`
-                            : "No especificado",                          
-                            description: trip.description || "Sin descripción",
-                            date: trip.date,
-                            service_type: trip.id_service_type === "7dcdd948-75bc-46b5-bcec-6e47e827b24b" ? "Flete" : "Mudanza"
+                          id: trip.id,
+                          name: trip.person ? `${trip.person.first_name} ${trip.person.first_surname}` : "Usuario",
+                          price: trip.price || 0,
+                          rating: 0,
+                          reviews: 0,
+                          origin: trip.origin_place,
+                          destination: trip.destination_place,
+                          origin_place: trip.origin_place,
+                          destination_place: trip.destination_place,
+                          description: trip.description || "Sin descripcion",
+                          date: trip.date,
+                          service_type: trip.id_service_type === "7dcdd948-75bc-46b5-bcec-6e47e827b24b" ? "Flete" : "Mudanza"
                         };
-                    });
+                      });
                     
                     setRequests(formattedRequests);
                 } else {
@@ -131,7 +143,7 @@ export default function TripRequestList() {
             if (error) throw error;
                 
             // Actualizar la lista local de solicitudes
-            setRequests(requests.filter((request) => request.id !== id));
+        setRequests(requests.filter((request) => request.id !== id));
         } catch (err) {
             console.error("Error accepting request:", err);
             alert("No se pudo aceptar la solicitud");
@@ -149,7 +161,7 @@ export default function TripRequestList() {
             if (error) throw error;
                 
             // Actualizar la lista local
-            setRequests(requests.filter((request) => request.id !== id));
+        setRequests(requests.filter((request) => request.id !== id));
         } catch (err) {
             console.error("Error rejecting request:", err);
             alert("No se pudo rechazar la solicitud");
@@ -157,10 +169,11 @@ export default function TripRequestList() {
     };
 
     const handleCancel = () => {
-        // Redirigir a la página principal
-        window.location.href = "/customer/main_view";
+        if (typeof window !== "undefined") {
+            router.push("/carrier/main_view");
+        }
     };
-
+    
     const handleViewDetails = (request: TripRequest) => {
         setSelectedRequest(request);
         setIsModalOpen(true);
@@ -169,27 +182,28 @@ export default function TripRequestList() {
     const handleSubmitOffer = async (newPrice: number) => {
         if (selectedRequest) {
             try {
-                // Actualizar el precio en Supabase
-                const { error } = await supabase
-                    .from("travel_request")
-                    .update({ price: newPrice })
-                    .eq("id", selectedRequest.id);
-                
-                if (error) throw error;
-                
-                // Actualizar la UI
-                setRequests(
-                    requests.map((req) =>
-                        req.id === selectedRequest.id
-                            ? { ...req, price: newPrice }
-                            : req
-                    )
-                );
-                
+                const finalPrice = newPrice || selectedRequest.price;    
+                const { error: insertError } = await supabase
+                    .from("trip_request")
+                    .insert({
+                        acepto: false,
+                        id_travel_request: selectedRequest.id,
+                        id_carrier: carrierId,
+                        newPrice: finalPrice,
+                    });
+    
+                if (insertError) throw insertError;
+                setAlertMessage("Oferta enviada con éxito");
+                setAlertType("success");
+                setOpenAlert(true);
+                // Opcional: remover la solicitud aceptada del estado
+                setRequests(requests.filter((req) => req.id !== selectedRequest.id));
                 setIsModalOpen(false);
             } catch (err) {
-                console.error("Error updating price:", err);
-                alert("No se pudo actualizar el precio");
+                console.error("Error al enviar la oferta:", err);
+                setAlertMessage("No se pudo enviar la oferta");
+                setAlertType("error");
+                setOpenAlert(true);
             }
         }
     };
@@ -214,24 +228,27 @@ export default function TripRequestList() {
                 ) : error ? (
                     <div className="text-center py-8 text-red-500">
                         <p>{error}</p>
-                        <button 
-                            onClick={() => window.location.reload()}
-                            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md"
-                        >
-                            Reintentar
-                        </button>
+                        <button
+                        onClick={() => {
+                         if (typeof window !== "undefined") {
+                          router.refresh();
+                         }
+                          }}
+                           className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md" >
+                              Reintentar
+                            </button>
                     </div>
                 ) : requests.length === 0 ? (
                     <div className="text-center py-8">No hay solicitudes disponibles</div>
                 ) : (
                     requests.map((request) => (
-                        <TripRequestCard
-                            key={request.id}
-                            request={request}
-                            onAccept={() => handleAccept(request.id)}
-                            onReject={() => handleReject(request.id)}
-                            onViewDetails={() => handleViewDetails(request)}
-                        />
+                    <TripRequestCard
+                        key={request.id}
+                        request={request}
+                        onAccept={() => handleAccept(request.id)}
+                        onReject={() => handleReject(request.id)}
+                        onViewDetails={() => handleViewDetails(request)}
+                    />
                     ))
                 )}
             </div>
@@ -244,20 +261,34 @@ export default function TripRequestList() {
                     Regresar
                 </button>
             </div>
-            
             {selectedRequest && (
                 <TripRequestModal
                     isOpen={isModalOpen}
                     onClose={() => setIsModalOpen(false)}
                     onSubmit={handleSubmitOffer}
                     tripDetails={{
-                        origin: selectedRequest.origin,
-                        destination: selectedRequest.destination,
+                        origin: selectedRequest.origin_place,
+                        destination: selectedRequest.destination_place,
                         description: selectedRequest.description,
                         currentOffer: selectedRequest.price,
-                    }}
+                        pickupCoords: parseCoords(selectedRequest.origin_place),
+                        destinationCoords: parseCoords(selectedRequest.destination_place),
+                      }}
                 />
             )}
+            <Snackbar
+                         open={openAlert}
+                         autoHideDuration={6000}
+                         onClose={handleCloseAlert}
+                         anchorOrigin={{ vertical: "top", horizontal: "center" }}
+                          ><Alert
+                              onClose={handleCloseAlert}
+                              severity={alertType}
+                              sx={{ width: "100%" }}
+                              >
+                             {alertMessage}
+                         </Alert>
+                        </Snackbar>
         </div>
     );
 }

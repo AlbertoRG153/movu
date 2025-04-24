@@ -61,8 +61,9 @@ export const ProfileCustomer = () => {
   }
 
   useEffect(() => {
-    fetchUserData()
-  }, [])
+    fetchUserData();
+  }, [fetchUserData]);
+  
 
   return (
     <div className="relative flex flex-col justify-start p-9 bg-[#092A39]/80 h-[90vh] w-full top-0 px-4">

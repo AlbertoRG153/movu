@@ -1,6 +1,6 @@
-import { SettingsCustomerCarrier } from "@/components/carrier/settings_customer_carrier";
+import { SettingsCustomerCarrier } from "@/components/customer_carrier/settings_customer_carrier";
 
-const SettingsCarrierPage = () => {
+const SettingsCustomerPage = () => {
   return (
     <div className="flex min-h-svh w-full items-center justify-center ">
       <div className="w-full">
@@ -10,4 +10,4 @@ const SettingsCarrierPage = () => {
   );
 }
 
-export default SettingsCarrierPage
+export default SettingsCustomerPage

@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { Snackbar, Alert } from "@mui/material";
 
 type VehicleType = {
   id: string;
@@ -89,30 +90,68 @@ export default function VehiculoPage() {
       reader.readAsDataURL(file);
     }
   };
-
-  const handleSubmit = () => {
+  const [openAlert, setOpenAlert] = useState(false);
+  const [alertType, setAlertType] = useState<'success' | 'error'>('success');
+  const [alertMessage, setAlertMessage] = useState('');
+  
+  const handleCloseAlert = (_event?: React.SyntheticEvent | Event, reason?: string) => {
+    if (reason === 'clickaway') return;
+    setOpenAlert(false);
+  };
+  
+  const handleSubmit = async () => {
     if (!isFormComplete) {
-      alert("Por favor completa todos los campos antes de continuar.");
+      setAlertType("error");
+      setAlertMessage("Por favor completa todos los campos antes de continuar.");
+      setOpenAlert(true);
       return;
     }
-
-    // Guardar todos los datos en localStorage con expiración de 24 horas
-    setLocalStorageWithExpiry("vehicleType", selectedVehicleType, 24);
-    setLocalStorageWithExpiry("plateNumber", plateNumber, 24);
-    setLocalStorageWithExpiry("brand", brand, 24);
-    setLocalStorageWithExpiry("model", model, 24);
-    setLocalStorageWithExpiry("color", color, 24);
-    setLocalStorageWithExpiry("vehicleInfoCompleted", "true", 24);
-    
-    // Guardar la imagen en localStorage con expiración
-    if (imagePreview) {
-      setLocalStorageWithExpiry("vehiclePhoto", imagePreview, 24);
+  
+    try {
+      // Verificar si ya existe la placa
+      const { data: existingVehicle, error } = await supabase
+        .from("vehicle")
+        .select("id")
+        .eq("plate_number", plateNumber)
+        .maybeSingle();
+  
+      if (error) {
+        console.error("Error verificando placa:", error.message);
+        setAlertType("error");
+        setAlertMessage("Ocurrió un error al verificar la placa. Intenta de nuevo.");
+        setOpenAlert(true);
+        return;
+      }
+  
+      if (existingVehicle) {
+        setAlertType("error");
+        setAlertMessage("Ya hay un vehículo registrado con ese número de placa.");
+        setOpenAlert(true);
+        return;
+      }
+  
+      // Guardar todos los datos en localStorage con expiración de 24 horas
+      setLocalStorageWithExpiry("vehicleType", selectedVehicleType, 24);
+      setLocalStorageWithExpiry("plateNumber", plateNumber, 24);
+      setLocalStorageWithExpiry("brand", brand, 24);
+      setLocalStorageWithExpiry("model", model, 24);
+      setLocalStorageWithExpiry("color", color, 24);
+      setLocalStorageWithExpiry("vehicleInfoCompleted", "true", 24);
+  
+      if (imagePreview) {
+        setLocalStorageWithExpiry("vehiclePhoto", imagePreview, 24);
+      }
+  
+      router.push("/register_conductor/information");
+  
+    } catch (err) {
+      console.error("Error en handleSubmit:", err);
+      setAlertType("error");
+      setAlertMessage("Ocurrió un error inesperado. Intenta de nuevo.");
+      setOpenAlert(true);
     }
-
-
-    
-    router.push("/register_conductor/information");
   };
+  
 
   useEffect(() => {
     const fetchVehicleTypes = async () => {
@@ -142,7 +181,6 @@ export default function VehiculoPage() {
       if (savedColor) setColor(savedColor);
       
       if (savedPhoto) {
-        console.log("✅ Imagen recuperada desde localStorage");
         setImagePreview(savedPhoto);
       }
     }
@@ -268,6 +306,18 @@ export default function VehiculoPage() {
       <Link href="/register_conductor/information">
         <button className="mt-8 text-sm underline mb-8">Regresar</button>
       </Link>
+      <Snackbar
+        open={openAlert}
+        autoHideDuration={6000}
+        onClose={handleCloseAlert}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseAlert} severity={alertType} sx={{ width: '100%' }}>
+          {alertMessage}
+        </Alert>
+      </Snackbar>
+
     </div>
+    
   );
 }

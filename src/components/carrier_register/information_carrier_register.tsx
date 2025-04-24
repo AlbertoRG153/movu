@@ -247,7 +247,7 @@ export function InformationCarrierRegister() {
             </button>
 
             <p className="text-xs mt-10 w-11/12 max-w-sm text-gray-300 text-justify">
-              Al pulsar &quot;Aceptar&quot; estás aceptando nuestros Términos y condiciones y condiciones de Política de privacidad.
+              Al pulsar &quot;Aceptar&quot; estás aceptando nuestros Términos y condiciones y tambien nuestras Política de privacidad.
             </p>
           </form>
         </div>

@@ -4,6 +4,8 @@ import { useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import{ Snackbar, Alert } from "@mui/material";
+import { supabase } from "@/lib/supabase/supabaseClient";
 
 export default function DriverLicenseAndSelfiePage() {
   const router = useRouter();
@@ -48,9 +50,6 @@ export default function DriverLicenseAndSelfiePage() {
         }
         return item.value;
       } else {
-        // Es JSON válido pero no tiene la estructura que necesitamos
-        // Podemos asumir que es un valor antiguo sin expiración
-        // Vamos a actualizarlo al nuevo formato
         setLocalStorageWithExpiry(key, itemStr, 24);
         return itemStr;
       }
@@ -65,9 +64,7 @@ export default function DriverLicenseAndSelfiePage() {
 
 
   useEffect(() => {
-    // Opcional: descomenta esta línea si quieres borrar todo y empezar de cero
-    // clearOldStorageFormat(); 
-    
+
     try {
       // Cargar datos con verificación de expiración
       const savedLicense = getLocalStorageWithExpiry('licenseNumber');
@@ -97,20 +94,63 @@ export default function DriverLicenseAndSelfiePage() {
     }
   };
 
-  const handleSubmit = () => {
+  const [openAlert, setOpenAlert] = useState(false);
+  const [alertType, setAlertType] = useState<'success' | 'error'>('success');
+  const [alertMessage, setAlertMessage] = useState('');
+
+  const handleCloseAlert = (_event?: React.SyntheticEvent | Event, reason?: string) => {
+    if (reason === 'clickaway') return;
+    setOpenAlert(false);
+  };
+
+
+  const handleSubmit = async () => {
     if (!isFormComplete) {
-      alert('Por favor completa todos los campos.');
+      setAlertType('error');
+      setAlertMessage('Por favor completa todos los campos.');
+      setOpenAlert(true);
       return;
     }
   
-    // Guardar en localStorage con expiración de 24 horas
-    setLocalStorageWithExpiry('licenseNumber', licenseNumber, 24);
-    setLocalStorageWithExpiry('licenseExpiration', licenseExpiration, 24);
-    setLocalStorageWithExpiry('selfiePreview', selfiePreview!, 24);
-    setLocalStorageWithExpiry('driverLicenseCompleted', 'true', 24);
-
-    router.push("/register_conductor/information");
+    try {
+      // Verificar si el número de licencia ya existe
+      const { data: existingCarrier, error } = await supabase
+        .from('carrier')
+        .select('id')
+        .eq('license', licenseNumber)
+        .maybeSingle();
+  
+      if (error) {
+        console.error('Error verificando licencia:', error.message);
+        setAlertType('error');
+        setAlertMessage('Ocurrió un error al verificar la licencia. Intenta de nuevo.');
+        setOpenAlert(true);
+        return;
+      }
+  
+      if (existingCarrier) {
+        setAlertType('error');
+        setAlertMessage('Número de licencia ya registrado.');
+        setOpenAlert(true);
+        return;
+      }
+  
+      // Guardar en localStorage con expiración de 24 horas
+      setLocalStorageWithExpiry('licenseNumber', licenseNumber, 24);
+      setLocalStorageWithExpiry('licenseExpiration', licenseExpiration, 24);
+      setLocalStorageWithExpiry('selfiePreview', selfiePreview!, 24);
+      setLocalStorageWithExpiry('driverLicenseCompleted', 'true', 24);
+  
+      router.push("/register_conductor/information");
+  
+    } catch (err) {
+      console.error('Error en handleSubmit:', err);
+      setAlertType('error');
+      setAlertMessage('Ocurrió un error inesperado. Intenta de nuevo.');
+      setOpenAlert(true);
+    }
   };
+  
   
 
   return (
@@ -191,6 +231,16 @@ export default function DriverLicenseAndSelfiePage() {
       <Link href="/register_conductor/information">
         <button className="mt-8 mb-8 text-sm underline">Regresar</button>
       </Link>
+      <Snackbar
+        open={openAlert}
+        autoHideDuration={6000}
+        onClose={handleCloseAlert}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseAlert} severity={alertType} sx={{ width: '100%' }}>
+          {alertMessage}
+        </Alert>
+      </Snackbar>
     </div>
   );
 }

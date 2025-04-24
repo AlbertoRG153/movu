@@ -9,13 +9,58 @@ import {
     Settings,
     LogOut,
     ChevronRight,
-    Star,
     Wallet,
     Clock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import Image from "next/image";
+import Rating from "@mui/material/Rating";
+import { Box } from "@mui/material";
+
+interface TravelRequest {
+    id_person: number;
+    id_carrier: number;
+}
+
+interface TripRequest {
+    travel_request?: TravelRequest;
+    id_carrier?: number;
+    id_person?: number;
+}
+
+interface Trip {
+    id: number;
+    status: {
+        name: string;
+    } | null;
+    trip_request?: TripRequest | null; // Permitir que trip_request sea nulo o indefinido
+}
+
+interface Rating {
+    id: number;
+    score_carrier?: number;
+    score_person?: number;
+    id_trip: number;
+    trip: Trip | null; // Permitir que trip sea nulo
+}
+
+// Interfaz de entrada para el Rating
+interface RatingEntry {
+    score_person?: number;
+    score_carrier?: number;
+    id_trip: number;
+    trip?: {
+        id: number;
+        status?: { name: string };
+        trip_request?: {
+            id_carrier?: number;
+            travel_request?: {
+                id_person?: number;
+            };
+        };
+    } | null;
+}
 
 interface SidebarProps {
     isOpen: boolean;
@@ -26,7 +71,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     const router = useRouter();
     const pathname = usePathname();
     const [activeItem, setActiveItem] = useState("");
-    const [rating] = useState(0);
+    const [ratingData, setRatingData] = useState<{
+        rating: number;
+        totalTrips: number;
+    }>({ rating: 0, totalTrips: 0 });
     const [isDriverMode, setIsDriverMode] = useState(false);
     const [transitionDuration, setTransitionDuration] = useState("400ms");
     const [userInfo, setUserInfo] = useState<{
@@ -96,7 +144,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                     pathname === "/carrier/trips_history" ||
                     pathname === "/carrier/support" ||
                     pathname === "/carrier/settings" ||
-                    pathname === "/carrier/profile"
+                    pathname === "/carrier/profile" ||
+                    pathname === "/carrier/trip_request"
             );
         }
     }, [pathname]);
@@ -153,6 +202,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     };
 
     const handleLogout = () => {
+        localStorage.removeItem("currentUser");
         localStorage.removeItem("main_view"); // Limpiar localStorage
         router.push("/login");
         onClose();
@@ -206,6 +256,108 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         }
     }, [userId]);
 
+    useEffect(() => {
+        const fetchRatingAndTripInfo = async () => {
+            if (!userId) return;
+
+            const isClient = pathname?.startsWith("/customer");
+            let totalDeliveredTrips = 0;
+            let ratings: RatingEntry[] = [];
+
+            if (isClient) {
+                const { data: ratingDataRes, error: ratingError } =
+                    (await supabase.from("rating").select(`
+            score_person, id_trip,
+            trip (
+              id,
+              status ( name ),
+              trip_request (
+                travel_request ( id_person )
+              )
+            )
+          `)) as unknown as { data: Rating[] | null; error: Error | null };
+
+                if (ratingError || !ratingDataRes) {
+                    console.error(
+                        "Error al obtener ratings (cliente):",
+                        ratingError
+                    );
+                    setRatingData({ rating: 5, totalTrips: 0 });
+                    return;
+                }
+
+                const clientRatings = ratingDataRes.filter(
+                    (rating) =>
+                        rating.trip?.trip_request?.travel_request?.id_person ===
+                        userId
+                );
+
+                totalDeliveredTrips = clientRatings.filter(
+                    (rating) => rating.trip?.status?.name === "Entregado"
+                ).length;
+
+                ratings = clientRatings.map((rating) => ({
+                    score_person: rating.score_person,
+                    id_trip: rating.id_trip,
+                    trip: rating.trip,
+                })) as RatingEntry[];
+            } else {
+                const { data: ratingDataRes, error: ratingError } =
+                    (await supabase.from("rating").select(`
+            score_carrier, id_trip,
+            trip (
+              id,
+              status ( name ),
+              trip_request ( id_carrier )
+            )
+          `)) as unknown as { data: Rating[] | null; error: Error | null };
+
+                if (ratingError || !ratingDataRes) {
+                    console.error(
+                        "Error al obtener ratings (conductor):",
+                        ratingError
+                    );
+                    setRatingData({ rating: 5, totalTrips: 0 });
+                    return;
+                }
+
+                const driverRatings = ratingDataRes.filter(
+                    (rating) => rating.trip?.trip_request?.id_carrier === userId
+                );
+
+                totalDeliveredTrips = driverRatings.filter(
+                    (rating) => rating.trip?.status?.name === "Entregado"
+                ).length;
+
+                ratings = driverRatings.map((rating) => ({
+                    score_carrier: rating.score_carrier,
+                    id_trip: rating.id_trip,
+                    trip: rating.trip,
+                })) as RatingEntry[];
+            }
+
+            const scoreKey: keyof RatingEntry = isClient
+                ? "score_person"
+                : "score_carrier";
+
+            const validScores = ratings.filter(
+                (r) => typeof r[scoreKey] === "number"
+            );
+            const sum = validScores.reduce(
+                (acc, r) => acc + (r[scoreKey] as number),
+                0
+            );
+            const avg = validScores.length > 0 ? sum / validScores.length : 5;
+
+            setRatingData({
+                rating: avg,
+                totalTrips: totalDeliveredTrips,
+            });
+        };
+
+        fetchRatingAndTripInfo();
+    }, [userId, isDriverMode, pathname]);
+
     return (
         <div
             className={cn(
@@ -245,22 +397,25 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                                 ? `${userInfo.first_name} ${userInfo.first_surname}`
                                 : "..."}
                         </h3>
-                        <div className="flex items-center">
-                            {[...Array(5)].map((_, i) => (
-                                <Star
-                                    key={i}
-                                    size={14}
-                                    className={
-                                        i < rating
-                                            ? "text-yellow-400 fill-yellow-400"
-                                            : "text-gray-400"
-                                    }
-                                />
-                            ))}
+
+                        <Box display="flex" alignItems="center">
+                            <Rating
+                                value={ratingData.rating}
+                                precision={0.1}
+                                readOnly
+                                size="small"
+                                sx={{
+                                    color: "#facc15",
+                                    "& .MuiRating-iconEmpty": {
+                                        color: "#d1d5db",
+                                    },
+                                }}
+                            />
                             <span className="ml-1 text-xs text-gray-300">
-                                0 (0)
+                                {ratingData.rating.toFixed(2)} (
+                                {ratingData.totalTrips})
                             </span>
-                        </div>
+                        </Box>
                     </div>
                 </div>
                 <ChevronRight size={20} />
