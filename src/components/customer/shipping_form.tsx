@@ -40,7 +40,7 @@ export default function ShippingForm() {
     const [openAlert, setOpenAlert] = useState(false);
     const handleCloseAlert = () => {
     setOpenAlert(false);};
-    const MapModal = dynamic(() => import("@/components/map").then(mod => mod.MapModal), {
+    const MapModal = dynamic(() => import("@/components/maps/map").then(mod => mod.MapModal), {
         ssr: false,
       });
       const [pickupDisplay, setPickupDisplay] = useState<string>("")
