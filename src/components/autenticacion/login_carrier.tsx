@@ -30,7 +30,6 @@ export function LoginConductor({
             const user = await loginUser(email, password);
 
             if (user) {
-
                 if (typeof window !== "undefined") {
                     localStorage.setItem(
                         "main_view",
@@ -95,7 +94,7 @@ export function LoginConductor({
                                         placeholder="Correo electrónico"
                                         value={email}
                                         onChange={(e) =>
-                                        setEmail(e.target.value)
+                                            setEmail(e.target.value)
                                         }
                                         required
                                     />
@@ -168,10 +167,18 @@ export function LoginConductor({
                             </div>
                             <br />
 
-                            <Link href="/login">
-                                
-                            </Link>
+                            <Link href="/login"></Link>
                         </form>
+
+                        <Link href="/login">
+                            <Button
+                                type="submit"
+                                style={{ backgroundColor: "#2DF1A9" }}
+                                className="w-full py-6 bg-emerald-400 hover:bg-emerald-500 text-white"
+                            >
+                                Acceder Modo Cliente
+                            </Button>
+                        </Link>
                     </CardContent>
                 </Card>
             </div>

@@ -78,7 +78,7 @@ export default function TripStatus() {
                         </div>
 
                         <Button className="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-md">
-                            Cancelar solicitud
+                            Cancelar viaje
                         </Button>
                     </Card>
                 </div>
